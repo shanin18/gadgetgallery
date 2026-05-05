@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+:root {
+  --background: 210 20% 98%;
+  --foreground: 224 28% 12%;
+  --card: 0 0% 100%;
+  --border: 214 18% 88%;
+  --muted: 210 18% 93%;
+  --muted-foreground: 222 10% 42%;
+  --primary: 174 74% 32%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 38 92% 54%;
+  --accent-foreground: 224 28% 12%;
+  --destructive: 0 74% 50%;
+}
+
+.dark {
+  --background: 224 28% 8%;
+  --foreground: 210 20% 96%;
+  --card: 224 24% 12%;
+  --border: 222 18% 22%;
+  --muted: 222 18% 18%;
+  --muted-foreground: 214 12% 72%;
+  --primary: 174 68% 42%;
+  --primary-foreground: 224 28% 8%;
+  --accent: 38 92% 58%;
+  --accent-foreground: 224 28% 8%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.container-page {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-ring:focus-visible {
+  outline-color: hsl(var(--primary));
+}
