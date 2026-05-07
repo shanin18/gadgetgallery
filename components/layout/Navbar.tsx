@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Bell, Heart, LogOut, MapPin, Menu, Search, Settings, ShoppingBag, ShieldCheck, UserRound, X } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -28,8 +28,8 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [navigating, setNavigating] = useState(false);
-  const [session, setSession] = useState<AuthSession | null>(null);
-  const [sessionLoaded, setSessionLoaded] = useState(false);
+  const { data: session, status } = useSession();
+  const sessionLoaded = status !== "loading";
   const accountRef = useRef<HTMLDivElement>(null);
   const items = useCartStore((state) => state.items);
   const toggleCart = useCartStore((state) => state.toggle);
@@ -45,40 +45,23 @@ export function Navbar() {
     }
   }
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/auth/session")
-      .then((response) => response.json())
-      .then((data) => {
-        if (active) setSession(data?.user ? data : null);
-      })
-      .catch(() => {
-        if (active) setSession(null);
-      })
-      .finally(() => {
-        if (active) setSessionLoaded(true);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
+  // Close account dropdown when clicking outside
   useEffect(() => {
     function closeOnOutsideClick(event: MouseEvent) {
       if (!accountRef.current?.contains(event.target as Node)) {
         setAccountOpen(false);
       }
     }
-
     document.addEventListener("mousedown", closeOnOutsideClick);
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, []);
 
+  // Reset navigating flag after route change
   useEffect(() => {
     const timeout = window.setTimeout(() => setNavigating(false), 0);
     return () => window.clearTimeout(timeout);
   }, [pathname]);
+
 
   return (
     <>

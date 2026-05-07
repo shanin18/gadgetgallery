@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { authConfig } from "@/lib/auth.config";
 
+
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8)

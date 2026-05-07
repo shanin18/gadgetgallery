@@ -4,6 +4,7 @@ import "./globals.css";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { CartDrawer } from "@/components/layout/CartDrawer";
+import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" });
@@ -21,10 +22,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jakarta.variable} font-sans antialiased`} suppressHydrationWarning>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <CartDrawer />
+        <SessionProvider>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+          <CartDrawer />
+        </SessionProvider>
       </body>
     </html>
   );
