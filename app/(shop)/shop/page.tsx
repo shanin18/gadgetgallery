@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { categories, filterProducts } from "@/lib/catalog";
+import { db } from "@/lib/db";
+import { mapDbProduct } from "@/lib/product-mapper";
 
 export const metadata: Metadata = {
   title: "Shop Gadgets",
@@ -17,13 +18,44 @@ async function ShopContent({ searchParams }: { searchParams: Promise<Record<stri
     const value = params[key];
     return Array.isArray(value) ? value[0] : value;
   };
-  const result = filterProducts({
-    q: get("q"),
-    category: get("category"),
-    min: Number(get("min")) || undefined,
-    max: Number(get("max")) || undefined,
-    sort: get("sort")
-  });
+  const query = get("q")?.trim();
+  const category = get("category");
+  const min = Number(get("min")) || undefined;
+  const max = Number(get("max")) || undefined;
+  const sort = get("sort");
+  const [categories, products] = await Promise.all([
+    db.category.findMany({ orderBy: { name: "asc" }, select: { name: true, slug: true } }),
+    db.product.findMany({
+      where: {
+        ...(query
+          ? {
+              OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+                { brand: { contains: query, mode: "insensitive" } }
+              ]
+            }
+          : {}),
+        ...(category ? { category: { slug: category } } : {}),
+        ...(min || max ? { price: { ...(min ? { gte: min } : {}), ...(max ? { lte: max } : {}) } } : {})
+      },
+      orderBy:
+        sort === "price-asc"
+          ? { price: "asc" }
+          : sort === "price-desc"
+            ? { price: "desc" }
+            : sort === "rating"
+              ? { rating: "desc" }
+              : sort === "newest"
+                ? { createdAt: "desc" }
+                : { featured: "desc" },
+      include: {
+        category: { select: { name: true, slug: true } },
+        images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }] }
+      }
+    })
+  ]);
+  const result = products.map(mapDbProduct);
 
   return (
     <div className="container-page grid gap-8 py-10 lg:grid-cols-[260px_1fr]">
@@ -72,6 +104,7 @@ async function ShopContent({ searchParams }: { searchParams: Promise<Record<stri
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {result.map((product) => <ProductCard key={product.id} product={product} />)}
         </div>
+        {!result.length ? <p className="rounded-lg border bg-card p-5 text-sm font-semibold text-muted-foreground">No products found.</p> : null}
       </section>
     </div>
   );

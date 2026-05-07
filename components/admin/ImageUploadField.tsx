@@ -3,10 +3,16 @@
 import { useRef, useState } from "react";
 import { ImageUp, Loader2 } from "lucide-react";
 
-export function ImageUploadField({ label, value, onChange }: { label: string; value: string; onChange: (url: string) => void }) {
+function shortenFileName(name?: string) {
+  if (!name) return "";
+  return name.length > 28 ? `${name.slice(0, 28)}...` : name;
+}
+
+export function ImageUploadField({ label, value, fileName, onChange }: { label: string; value: string; fileName?: string; onChange: (url: string, fileName: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
+  const displayName = shortenFileName(fileName);
 
   function uploadFile(file: File) {
     setIsUploading(true);
@@ -26,7 +32,7 @@ export function ImageUploadField({ label, value, onChange }: { label: string; va
           throw new Error(data.error ?? "Upload failed.");
         }
 
-        onChange(data.url);
+        onChange(data.url, file.name);
       } catch (uploadError) {
         setError(uploadError instanceof Error ? uploadError.message : "Upload failed.");
       } finally {
@@ -37,17 +43,18 @@ export function ImageUploadField({ label, value, onChange }: { label: string; va
   }
 
   return (
-    <div className="block text-sm font-semibold">
+    <div className="block min-w-0 text-sm font-semibold">
       {label}
       <button
         type="button"
-        className="mt-2 flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-md border bg-background px-3 py-4 text-center outline-none transition hover:bg-muted"
+        className="mt-2 flex h-10 w-full min-w-0 items-center gap-2 overflow-hidden rounded-md border bg-background px-3 text-left outline-none transition hover:bg-muted"
         onClick={() => inputRef.current?.click()}
         disabled={isUploading}
       >
-        {isUploading ? <Loader2 className="animate-spin text-primary" size={22} /> : <ImageUp className="text-primary" size={22} />}
-        <span className="text-sm font-extrabold">{value ? "Image uploaded" : "Upload image"}</span>
-        <span className="max-w-full truncate text-xs font-medium text-muted-foreground">{value || "Choose a file from your device"}</span>
+        {isUploading ? <Loader2 className="shrink-0 animate-spin text-primary" size={17} /> : <ImageUp className="shrink-0 text-primary" size={17} />}
+        <span className="block min-w-0 flex-1 truncate text-sm font-semibold text-muted-foreground">
+          {isUploading ? "Uploading..." : value ? displayName || "Selected image" : "Upload image"}
+        </span>
       </button>
       <input
         ref={inputRef}

@@ -58,7 +58,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {products.length ? products.map((product) => (
               <tr key={product.id} className="border-b last:border-0">
                 <td className="py-4">
                   <div className="flex items-center gap-3">
@@ -82,7 +82,13 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                   </div>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={6} className="py-8 text-center text-sm font-semibold text-muted-foreground">
+                  No products found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

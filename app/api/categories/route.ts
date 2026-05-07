@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -22,13 +23,22 @@ export async function POST(request: Request) {
   }
 
   const slug = slugify(parsed.data.name);
-  const category = await db.category.create({
-    data: {
-      name: parsed.data.name,
-      slug,
-      image: parsed.data.image
-    }
-  });
+  try {
+    const category = await db.category.create({
+      data: {
+        name: parsed.data.name,
+        slug,
+        image: parsed.data.image
+      }
+    });
 
-  return NextResponse.json({ category }, { status: 201 });
+    return NextResponse.json({ category }, { status: 201 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "A category with this name already exists." }, { status: 409 });
+    }
+
+    console.error("Category create failed.", error);
+    return NextResponse.json({ error: "Could not create category." }, { status: 500 });
+  }
 }

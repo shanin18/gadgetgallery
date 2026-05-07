@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { products } from "@/lib/catalog";
 import { db } from "@/lib/db";
+import { mapDbProduct } from "@/lib/product-mapper";
 import { productSchema } from "@/lib/validations/product";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = products.find((item) => item.id === id || item.slug === id);
+  const product = await db.product.findFirst({
+    where: { OR: [{ id }, { slug: id }] },
+    include: {
+      category: { select: { name: true, slug: true } },
+      images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }] }
+    }
+  });
   if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
-  return NextResponse.json({ product });
+  return NextResponse.json({ product: mapDbProduct(product) });
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -31,6 +37,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       comparePrice: parsed.data.comparePrice,
       stock: parsed.data.stock,
       brand: parsed.data.brand,
+      featured: parsed.data.featured,
+      specs: parsed.data.specs,
       categoryId: parsed.data.categoryId,
       ...(parsed.data.images
         ? {

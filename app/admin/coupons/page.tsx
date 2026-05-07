@@ -1,4 +1,5 @@
 import { CouponForm } from "@/components/admin/CouponForm";
+import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { db } from "@/lib/db";
 import { formatBDT } from "@/lib/utils";
 
@@ -20,7 +21,7 @@ export default async function AdminCouponsPage() {
       {coupons.length ? (
         <div className="mt-5 grid gap-3">
           {coupons.map((coupon) => (
-            <div key={coupon.id} className="grid gap-3 rounded-lg border bg-background p-4 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+            <div key={coupon.id} className="grid gap-3 rounded-lg border bg-background p-4 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center">
               <div>
                 <p className="font-display text-lg font-extrabold">{coupon.code}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -30,6 +31,7 @@ export default async function AdminCouponsPage() {
               </div>
               <span className="rounded-md bg-muted px-2 py-1 text-xs font-extrabold">{coupon.usedCount}{coupon.maxUses ? ` / ${coupon.maxUses}` : ""} used</span>
               <span className="text-sm font-semibold text-muted-foreground">{formatExpiry(coupon.expiresAt)}</span>
+              <ConfirmDeleteButton endpoint={`/api/coupons/${coupon.id}`} itemName={coupon.code} />
             </div>
           ))}
         </div>

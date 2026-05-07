@@ -1,19 +1,48 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { filterProducts } from "@/lib/catalog";
 import { db } from "@/lib/db";
+import { mapDbProduct } from "@/lib/product-mapper";
 import { productSchema } from "@/lib/validations/product";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const query = searchParams.get("q")?.trim();
+  const category = searchParams.get("category") ?? undefined;
+  const min = Number(searchParams.get("min")) || undefined;
+  const max = Number(searchParams.get("max")) || undefined;
+  const sort = searchParams.get("sort") ?? undefined;
+  const products = await db.product.findMany({
+    where: {
+      ...(query
+        ? {
+            OR: [
+              { name: { contains: query, mode: "insensitive" } },
+              { description: { contains: query, mode: "insensitive" } },
+              { brand: { contains: query, mode: "insensitive" } }
+            ]
+          }
+        : {}),
+      ...(category ? { category: { slug: category } } : {}),
+      ...(min || max ? { price: { ...(min ? { gte: min } : {}), ...(max ? { lte: max } : {}) } } : {})
+    },
+    orderBy:
+      sort === "price-asc"
+        ? { price: "asc" }
+        : sort === "price-desc"
+          ? { price: "desc" }
+          : sort === "rating"
+            ? { rating: "desc" }
+            : sort === "newest"
+              ? { createdAt: "desc" }
+              : { featured: "desc" },
+    include: {
+      category: { select: { name: true, slug: true } },
+      images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }] }
+    }
+  });
+
   return NextResponse.json({
-    products: filterProducts({
-      q: searchParams.get("q") ?? undefined,
-      category: searchParams.get("category") ?? undefined,
-      min: Number(searchParams.get("min")) || undefined,
-      max: Number(searchParams.get("max")) || undefined,
-      sort: searchParams.get("sort") ?? undefined
-    })
+    products: products.map(mapDbProduct)
   });
 }
 
@@ -38,6 +67,8 @@ export async function POST(request: Request) {
       comparePrice: parsed.data.comparePrice,
       stock: parsed.data.stock,
       brand: parsed.data.brand,
+      featured: parsed.data.featured,
+      specs: parsed.data.specs,
       categoryId: parsed.data.categoryId,
       images: {
         create: parsed.data.images.map((url, index) => ({ url, alt: parsed.data.name, isPrimary: index === 0 }))

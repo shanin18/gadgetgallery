@@ -8,7 +8,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     db.product.findUnique({
       where: { id },
-      include: { images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }], take: 1 } }
+      include: { images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }] } }
     })
   ]);
 
@@ -27,7 +27,9 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         price: String(product.price),
         comparePrice: product.comparePrice ? String(product.comparePrice) : "",
         stock: String(product.stock),
-        imageUrl: product.images[0]?.url ?? "",
+        featured: product.featured,
+        specs: product.specs && typeof product.specs === "object" && !Array.isArray(product.specs) ? Object.entries(product.specs).map(([key, value]) => ({ key, value: String(value) })) : [],
+        imageUrls: product.images.map((image) => image.url),
         description: product.description
       }}
     />

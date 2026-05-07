@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { AdminSearch } from "@/components/admin/AdminSearch";
 import { CategoryForm } from "@/components/admin/CategoryForm";
+import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { db } from "@/lib/db";
 
 export default async function AdminCategoriesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -34,10 +35,13 @@ export default async function AdminCategoriesPage({ searchParams }: { searchPara
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
               {category.image ? <Image src={category.image} alt={category.name} fill sizes="64px" className="object-cover" /> : null}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate font-extrabold">{category.name}</p>
               <p className="mt-1 truncate text-xs text-muted-foreground">{category.slug}</p>
-              <p className="mt-3 text-sm font-semibold">{category._count.products} products</p>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold">{category._count.products} products</p>
+                <ConfirmDeleteButton endpoint={`/api/categories/${category.id}`} itemName={category.name} />
+              </div>
             </div>
           </div>
         ))}

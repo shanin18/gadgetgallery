@@ -5,29 +5,53 @@ import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ProductGallery } from "@/components/shop/ProductGallery";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { WishlistButton } from "@/components/shop/WishlistButton";
-import { getProduct, products } from "@/lib/catalog";
+import { db } from "@/lib/db";
+import { mapDbProduct } from "@/lib/product-mapper";
 import { formatBDT } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await db.product.findUnique({
+    where: { slug },
+    include: {
+      category: { select: { name: true, slug: true } },
+      images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }] }
+    }
+  });
   if (!product) return {};
+  const mappedProduct = mapDbProduct(product);
   return {
-    title: product.name,
-    description: product.description,
+    title: mappedProduct.name,
+    description: mappedProduct.description,
     openGraph: {
-      title: product.name,
-      description: product.description,
-      images: [product.image]
+      title: mappedProduct.name,
+      description: mappedProduct.description,
+      images: [mappedProduct.image]
     }
   };
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = getProduct(slug);
-  if (!product) notFound();
-  const related = products.filter((item) => item.categorySlug === product.categorySlug && item.id !== product.id).slice(0, 3);
+  const productRecord = await db.product.findUnique({
+    where: { slug },
+    include: {
+      category: { select: { name: true, slug: true } },
+      images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }] }
+    }
+  });
+  if (!productRecord) notFound();
+  const product = mapDbProduct(productRecord);
+  const relatedRecords = await db.product.findMany({
+    where: { categoryId: productRecord.categoryId, id: { not: productRecord.id } },
+    take: 3,
+    orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
+    include: {
+      category: { select: { name: true, slug: true } },
+      images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }] }
+    }
+  });
+  const related = relatedRecords.map(mapDbProduct);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -43,7 +67,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <div className="container-page py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
-        <ProductGallery name={product.name} images={[product.image, ...product.images]} />
+        <ProductGallery name={product.name} images={product.images} />
         <section>
           <p className="text-sm font-bold uppercase text-primary">{product.category}</p>
           <h1 className="mt-2 font-display text-4xl font-extrabold">{product.name}</h1>
@@ -61,17 +85,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <AddToCartButton product={product} className="min-w-44" />
             <WishlistButton productSlug={product.slug} />
           </div>
-          <div className="mt-8 rounded-lg border bg-card p-5">
-            <h2 className="font-display text-xl font-bold">Specifications</h2>
-            <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-              {Object.entries(product.specs).map(([key, value]) => (
-                <div key={key} className="rounded-md bg-muted p-3">
-                  <dt className="text-xs font-bold uppercase text-muted-foreground">{key}</dt>
-                  <dd className="mt-1 font-semibold">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
+          {Object.keys(product.specs).length ? (
+            <div className="mt-8 rounded-lg border bg-card p-5">
+              <h2 className="font-display text-xl font-bold">Specifications</h2>
+              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                {Object.entries(product.specs).map(([key, value]) => (
+                  <div key={key} className="rounded-md bg-muted p-3">
+                    <dt className="text-xs font-bold uppercase text-muted-foreground">{key}</dt>
+                    <dd className="mt-1 font-semibold">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ) : null}
         </section>
       </div>
       <section className="mt-14">

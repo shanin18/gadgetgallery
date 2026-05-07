@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { CheckCircle2, Loader2, Plus, X, XCircle } from "lucide-react";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { Button } from "@/components/ui/Button";
 
@@ -10,12 +10,20 @@ export function CategoryForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  const [imageFileName, setImageFileName] = useState("");
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timeout = window.setTimeout(() => setToast(null), 4500);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage(null);
+    setToast(null);
 
     startTransition(async () => {
       const res = await fetch("/api/categories", {
@@ -26,13 +34,14 @@ export function CategoryForm() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setMessage(data.error ?? "Could not create category.");
+        setToast({ type: "error", message: data.error ?? "Could not create category." });
         return;
       }
 
       setName("");
       setImage("");
-      setMessage("Category created.");
+      setImageFileName("");
+      setToast({ type: "success", message: "Category created." });
       router.refresh();
     });
   }
@@ -44,13 +53,33 @@ export function CategoryForm() {
           Category name
           <input value={name} onChange={(event) => setName(event.target.value)} required minLength={2} className="mt-2 h-10 w-full rounded-md border bg-card px-3 outline-none focus:border-primary" />
         </label>
-        <ImageUploadField label="Category image" value={image} onChange={setImage} />
+        <ImageUploadField
+          label="Category image"
+          value={image}
+          fileName={imageFileName}
+          onChange={(url, fileName) => {
+            setImage(url);
+            setImageFileName(fileName);
+          }}
+        />
         <Button className="min-w-32" disabled={isPending}>
           {isPending ? <Loader2 className="animate-spin" size={17} /> : <Plus size={17} />}
           Add
         </Button>
       </div>
-      {message ? <p className="mt-3 text-sm font-semibold text-muted-foreground">{message}</p> : null}
+      {toast ? (
+        <div className="fixed bottom-5 right-5 z-[80] w-[min(360px,calc(100vw-32px))] rounded-lg border bg-card p-4 shadow-soft">
+          <div className="flex items-start gap-3">
+            <span className={`mt-0.5 ${toast.type === "success" ? "text-primary" : "text-destructive"}`}>
+              {toast.type === "success" ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+            </span>
+            <p className="flex-1 text-sm font-semibold">{toast.message}</p>
+            <button type="button" className="rounded-md p-1 text-muted-foreground hover:bg-muted" onClick={() => setToast(null)} aria-label="Close notification">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      ) : null}
     </form>
   );
 }
