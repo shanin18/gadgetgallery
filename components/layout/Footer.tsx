@@ -29,6 +29,7 @@ export function Footer() {
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
             <Link href="/account/orders">Track order</Link>
             <Link href="/account/profile">Profile</Link>
+            <Link href="/contact">Contact</Link>
             <Link href="/forgot-password">Reset password</Link>
           </div>
         </div>

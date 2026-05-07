@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Heart, LogOut, MapPin, Menu, Search, Settings, ShoppingBag, ShieldCheck, UserRound, X } from "lucide-react";
+import Image from "next/image";
+import { Bell, Heart, LogOut, Menu, Search, Settings, ShoppingBag, UserRound, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -11,17 +12,14 @@ import { useCartStore } from "@/store/cart-store";
 const nav = [
   { href: "/", label: "Home" },
   { href: "/shop", label: "Shop" },
-  { href: "/account/orders", label: "Orders" }
+  { href: "/contact", label: "Contact" }
 ];
 
 type AuthUser = {
   name?: string | null;
   email?: string | null;
+  image?: string | null;
   role?: "USER" | "ADMIN";
-};
-
-type AuthSession = {
-  user?: AuthUser;
 };
 
 export function Navbar() {
@@ -35,6 +33,7 @@ export function Navbar() {
   const toggleCart = useCartStore((state) => state.toggle);
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
   const user = session?.user;
+  const isAdmin = user?.role === "ADMIN";
   const pathname = usePathname();
 
   function startNavigation(href: string) {
@@ -77,6 +76,24 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            {user && !isAdmin ? (
+              <Link
+                href="/account/orders"
+                onClick={() => startNavigation("/account/orders")}
+                className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                Orders
+              </Link>
+            ) : null}
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                onClick={() => startNavigation("/admin")}
+                className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                Dashboard
+              </Link>
+            ) : null}
           </nav>
           <form action="/shop" className="ml-auto hidden h-10 min-w-72 items-center rounded-md border bg-card px-3 lg:flex">
             <Search size={16} className="text-muted-foreground" />
@@ -93,9 +110,7 @@ export function Navbar() {
                   aria-label="Open account menu"
                   aria-expanded={accountOpen}
                 >
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-extrabold text-primary-foreground">
-                    {(user.name ?? user.email ?? "U").slice(0, 1).toUpperCase()}
-                  </span>
+                  <UserAvatar user={user} size="sm" />
                 </button>
                 {accountOpen ? <AccountMenu user={user} onNavigate={startNavigation} /> : null}
               </>
@@ -120,11 +135,35 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            {user && !isAdmin ? (
+              <Link
+                href="/account/orders"
+                className="block rounded-md px-3 py-3 font-semibold"
+                onClick={() => startNavigation("/account/orders")}
+              >
+                Orders
+              </Link>
+            ) : null}
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                className="block rounded-md px-3 py-3 font-semibold"
+                onClick={() => startNavigation("/admin")}
+              >
+                Dashboard
+              </Link>
+            ) : null}
             <div className="mt-2 border-t pt-2">
               {user ? (
                 <>
-                  <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">{user.email}</p>
-                  <MobileAccountLinks isAdmin={user.role === "ADMIN"} onNavigate={startNavigation} />
+                  <div className="flex items-center gap-3 px-3 py-3">
+                    <UserAvatar user={user} size="md" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-extrabold">{user.name ?? "GadgetGallery user"}</p>
+                      <p className="truncate text-xs font-semibold text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  <MobileAccountLinks showOrders={!isAdmin} onNavigate={startNavigation} />
                 </>
             ) : (
               <Link href="/login" className="mx-3 mt-2 flex h-10 items-center justify-center rounded-md bg-primary px-4 font-semibold text-white" onClick={() => startNavigation("/login")}>Login</Link>
@@ -148,16 +187,17 @@ function NavigationOverlay() {
 function AccountMenu({ user, onNavigate }: { user: AuthUser; onNavigate: (href: string) => void }) {
   return (
     <div className="absolute right-0 top-12 z-50 w-72 overflow-hidden rounded-lg border bg-card shadow-soft">
-      <div className="border-b p-4">
-        <p className="font-display text-sm font-extrabold">{user.name ?? "GadgetGallery user"}</p>
-        <p className="mt-1 truncate text-xs text-muted-foreground">{user.email}</p>
+      <div className="flex items-center gap-3 border-b p-4">
+        <UserAvatar user={user} size="md" />
+        <div className="min-w-0">
+          <p className="truncate font-display text-sm font-extrabold">{user.name ?? "GadgetGallery user"}</p>
+          <p className="mt-1 truncate text-xs text-muted-foreground">{user.email}</p>
+        </div>
       </div>
       <div className="p-2">
         <AccountLink href="/account/profile" icon={UserRound} label="Profile" onNavigate={onNavigate} />
         <AccountLink href="/account/wishlist" icon={Heart} label="Wishlist" onNavigate={onNavigate} />
-        <AccountLink href="/account/addresses" icon={MapPin} label="Addresses" onNavigate={onNavigate} />
         <AccountLink href="/account/notifications" icon={Bell} label="Notifications" onNavigate={onNavigate} />
-        {user.role === "ADMIN" ? <AccountLink href="/admin" icon={ShieldCheck} label="Admin dashboard" onNavigate={onNavigate} /> : null}
         <button
           className="mt-1 flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-semibold text-destructive hover:bg-muted"
           onClick={() => signOut({ callbackUrl: "/" })}
@@ -170,6 +210,28 @@ function AccountMenu({ user, onNavigate }: { user: AuthUser; onNavigate: (href: 
   );
 }
 
+function UserAvatar({ user, size }: { user: AuthUser; size: "sm" | "md" }) {
+  const dimensions = size === "sm" ? "h-7 w-7" : "h-10 w-10";
+  const imageSize = size === "sm" ? 28 : 40;
+  const initial = (user.name ?? user.email ?? "U").slice(0, 1).toUpperCase();
+
+  return (
+    <span className={`${dimensions} grid shrink-0 place-items-center overflow-hidden rounded-full bg-primary text-xs font-extrabold text-primary-foreground ring-1 ring-primary/20`}>
+      {user.image ? (
+        <Image
+          src={user.image}
+          alt={user.name ?? "Profile photo"}
+          width={imageSize}
+          height={imageSize}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        initial
+      )}
+    </span>
+  );
+}
+
 function AccountLink({ href, icon: Icon, label, onNavigate }: { href: string; icon: typeof Settings; label: string; onNavigate: (href: string) => void }) {
   return (
     <Link href={href} onClick={() => onNavigate(href)} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted">
@@ -179,15 +241,13 @@ function AccountLink({ href, icon: Icon, label, onNavigate }: { href: string; ic
   );
 }
 
-function MobileAccountLinks({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate: (href: string) => void }) {
+function MobileAccountLinks({ showOrders, onNavigate }: { showOrders: boolean; onNavigate: (href: string) => void }) {
   return (
     <>
       <Link href="/account/profile" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/profile")}>Profile</Link>
-      <Link href="/account/orders" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/orders")}>Orders</Link>
+      {showOrders ? <Link href="/account/orders" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/orders")}>Orders</Link> : null}
       <Link href="/account/wishlist" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/wishlist")}>Wishlist</Link>
-      <Link href="/account/addresses" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/addresses")}>Addresses</Link>
       <Link href="/account/notifications" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/notifications")}>Notifications</Link>
-      {isAdmin ? <Link href="/admin" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/admin")}>Admin dashboard</Link> : null}
       <button className="block w-full rounded-md px-3 py-3 text-left font-semibold text-destructive" onClick={() => signOut({ callbackUrl: "/" })}>Logout</button>
     </>
   );

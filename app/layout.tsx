@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { CartDrawer } from "@/components/layout/CartDrawer";
 import { SessionProvider } from "next-auth/react";
+import { WishlistProvider } from "@/components/shop/WishlistProvider";
+import { RouteLoadingIndicator } from "@/components/layout/RouteLoadingIndicator";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" });
@@ -23,10 +26,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jakarta.variable} font-sans antialiased`} suppressHydrationWarning>
         <SessionProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-          <CartDrawer />
+          <WishlistProvider>
+            <Suspense fallback={null}>
+              <RouteLoadingIndicator />
+            </Suspense>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+            <CartDrawer />
+          </WishlistProvider>
         </SessionProvider>
       </body>
     </html>

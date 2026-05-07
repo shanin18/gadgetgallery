@@ -41,7 +41,7 @@ export function LoginForm() {
   return (
     <form onSubmit={onSubmit} className="w-full max-w-md rounded-lg border bg-card p-6 shadow-sm">
       <h1 className="font-display text-3xl font-extrabold">Login</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Access your orders, wishlist and admin tools.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Access your orders, wishlist and account settings.</p>
       {verified ? <p className="mt-4 rounded-md bg-primary/10 p-3 text-sm font-semibold text-primary">Email verified. You can log in now.</p> : null}
       {error ? <p className="mt-4 rounded-md bg-destructive/10 p-3 text-sm font-semibold text-destructive">{error}</p> : null}
       <label className="mt-6 block text-sm font-semibold">
