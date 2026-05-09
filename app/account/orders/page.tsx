@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatBDT } from "@/lib/utils";
 import { CalendarDays, CreditCard, PackageCheck, ReceiptText, ShoppingBag } from "lucide-react";
+import { redirect } from "next/navigation";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en-BD", { dateStyle: "medium" }).format(date);
@@ -21,6 +22,10 @@ function paymentMethodLabel(value: string) {
 
 export default async function OrdersPage() {
   const session = await auth();
+  if (session?.user?.role === "ADMIN") {
+    redirect("/admin/orders");
+  }
+
   const orders = session?.user?.id
     ? await db.order.findMany({
         where: { userId: session.user.id },

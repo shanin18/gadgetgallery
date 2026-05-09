@@ -39,12 +39,12 @@ export function OrderDetailsButton({ order }: { order: OrderDetails }) {
         <Eye size={16} />
       </button>
       {open ? (
-        <div className="fixed inset-0 z-[100] grid place-items-center bg-foreground/25 px-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border bg-card shadow-soft">
-            <div className="flex items-start justify-between gap-4 border-b p-5">
-              <div>
+        <div className="fixed inset-0 z-[100] grid place-items-end bg-foreground/25 p-0 backdrop-blur-sm sm:place-items-center sm:p-4">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-xl border bg-card shadow-soft sm:max-h-[90vh] sm:rounded-lg">
+            <div className="flex items-start justify-between gap-4 border-b p-4 sm:p-5">
+              <div className="min-w-0">
                 <p className="text-sm font-bold uppercase text-primary">Order details</p>
-                <h2 className="font-display text-2xl font-extrabold">{order.orderNumber}</h2>
+                <h2 className="break-words font-display text-xl font-extrabold sm:text-2xl">{order.orderNumber}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">{order.date}</p>
               </div>
               <button type="button" onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-muted" aria-label="Close details">
@@ -52,7 +52,7 @@ export function OrderDetailsButton({ order }: { order: OrderDetails }) {
               </button>
             </div>
 
-            <div className="grid gap-4 p-5 md:grid-cols-2">
+            <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-2">
               <section className="rounded-lg border bg-background p-4">
                 <p className="text-xs font-extrabold uppercase text-primary">Customer</p>
                 <p className="mt-3 font-extrabold">{order.customerName}</p>
@@ -78,15 +78,15 @@ export function OrderDetailsButton({ order }: { order: OrderDetails }) {
               </section>
             </div>
 
-            <div className="px-5 pb-5">
+            <div className="px-4 pb-4 sm:px-5 sm:pb-5">
               <section className="rounded-lg border bg-background p-4">
                 <p className="text-xs font-extrabold uppercase text-primary">Items</p>
                 <div className="mt-3 grid gap-2">
                   {order.items.map((item) => (
-                    <div key={item.name} className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3 rounded-md bg-muted p-3 text-sm">
-                      <p className="truncate font-bold">{item.name}</p>
+                    <div key={item.name} className="grid gap-2 rounded-md bg-muted p-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-3">
+                      <p className="min-w-0 font-bold sm:truncate">{item.name}</p>
                       <p className="font-semibold text-muted-foreground">x {item.quantity}</p>
-                      <p className="font-display font-extrabold">{formatBDT(item.price * item.quantity)}</p>
+                      <p className="font-display font-extrabold sm:text-right">{formatBDT(item.price * item.quantity)}</p>
                     </div>
                   ))}
                 </div>

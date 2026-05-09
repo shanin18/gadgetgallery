@@ -157,14 +157,13 @@ export default async function HomePage() {
             const image = category.image ?? firstProduct?.image ?? "/placeholder.svg";
 
             return (
-              <Link key={category.slug} href={`/shop?category=${category.slug}`} className="group overflow-hidden rounded-xl border bg-card shadow-sm active:scale-[0.99]">
-                <div className="relative aspect-square bg-muted">
+              <Link key={category.slug} href={`/shop?category=${category.slug}`} className="group overflow-hidden rounded-xl active:scale-[0.99]">
+                <div className="relative aspect-square overflow-hidden rounded-xl bg-white ring-1 ring-black/5">
                   <Image src={image} alt={category.name} fill sizes="(min-width: 1024px) 16vw, 33vw" className="object-cover transition group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
                 </div>
                 <div className="p-2.5 text-center sm:p-4 sm:text-left">
                   <p className="line-clamp-1 text-xs font-extrabold sm:text-base">{category.name}</p>
-                  <p className="mt-2 hidden items-center gap-1 text-xs font-bold text-primary sm:flex">Explore <ArrowRight size={13} /></p>
                 </div>
               </Link>
             );

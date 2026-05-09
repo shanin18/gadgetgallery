@@ -12,6 +12,10 @@ export async function GET() {
     return NextResponse.json({ orders: [] });
   }
 
+  if (session.user.role === "ADMIN") {
+    return NextResponse.json({ error: "Admins do not have customer order history." }, { status: 403 });
+  }
+
   const orders = await db.order.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
@@ -31,6 +35,10 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Please log in before placing an order." }, { status: 401 });
+  }
+
+  if (session.user.role === "ADMIN") {
+    return NextResponse.json({ error: "Admin accounts cannot place customer orders." }, { status: 403 });
   }
 
   const parsed = checkoutSchema.safeParse(await request.json());
@@ -54,6 +62,17 @@ export async function POST(request: Request) {
 
   if (missingItem) {
     return NextResponse.json({ error: "One or more products in your cart are no longer available." }, { status: 400 });
+  }
+
+  const requestedQuantityByProduct = new Map<string, number>();
+  for (const item of parsed.data.items) {
+    const product = resolveProduct(item)!;
+    requestedQuantityByProduct.set(product.id, (requestedQuantityByProduct.get(product.id) ?? 0) + item.quantity);
+  }
+
+  const insufficientStock = products.find((product) => (requestedQuantityByProduct.get(product.id) ?? 0) > product.stock);
+  if (insufficientStock) {
+    return NextResponse.json({ error: `${insufficientStock.name} does not have enough stock for the requested quantity.` }, { status: 400 });
   }
 
   const orderItems = parsed.data.items.map((item) => {
@@ -102,7 +121,7 @@ export async function POST(request: Request) {
   const total = discountedSubtotal + shipping + tax;
   const order = await db.order.create({
     data: {
-        orderNumber: number,
+      orderNumber: number,
       userId: session.user.id,
       paymentMethod: parsed.data.paymentMethod,
       paymentStatus: parsed.data.paymentMethod === "COD" ? "PENDING" : "PAID",

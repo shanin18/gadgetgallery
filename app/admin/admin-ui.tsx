@@ -39,7 +39,7 @@ export function StatusBadge({ value }: { value?: string | null }) {
 
 export function EmptyState({ title, detail }: { title: string; detail: string }) {
   return (
-    <div className="rounded-lg border bg-card p-6 text-center">
+    <div className="rounded-xl bg-card p-6 text-center">
       <p className="font-display text-lg font-extrabold">{title}</p>
       <p className="mt-2 text-sm text-muted-foreground">{detail}</p>
     </div>

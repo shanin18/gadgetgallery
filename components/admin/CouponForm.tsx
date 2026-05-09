@@ -48,7 +48,7 @@ export function CouponForm() {
   }
 
   return (
-    <form className="rounded-lg border bg-background p-4" onSubmit={submit}>
+    <form className="rounded-xl bg-card p-3 sm:p-4 md:bg-background" onSubmit={submit}>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_0.8fr_0.8fr_0.8fr_0.8fr_auto] xl:items-end">
         <label className="block text-sm font-semibold">
           Code
@@ -85,7 +85,7 @@ export function CouponForm() {
       </div>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {message ? <p className="text-sm font-semibold text-muted-foreground">{message}</p> : <span />}
-        <Button className="min-w-36" disabled={isPending}>
+        <Button className="w-full min-w-36 sm:w-auto" disabled={isPending}>
           {isPending ? <Loader2 className="animate-spin" size={17} /> : <Plus size={17} />}
           Add coupon
         </Button>

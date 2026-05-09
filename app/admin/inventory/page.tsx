@@ -21,7 +21,7 @@ export default async function AdminInventoryPage({ searchParams }: { searchParam
   });
 
   return (
-    <div className="rounded-lg border bg-card p-5 shadow-sm">
+    <div className="min-w-0 md:bg-card md:p-5">
       <p className="text-sm font-bold uppercase text-primary">Stock control</p>
       <h2 className="font-display text-2xl font-extrabold">Inventory</h2>
       <div className="mt-5">
@@ -31,13 +31,13 @@ export default async function AdminInventoryPage({ searchParams }: { searchParam
         {products.map((product) => {
           const low = product.stock <= 10;
           return (
-            <div key={product.id} className="grid gap-3 rounded-lg border bg-background p-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div key={product.id} className="grid min-w-0 gap-3 rounded-xl bg-card p-3 sm:grid-cols-[1fr_auto] sm:items-center sm:p-4 md:bg-background">
               <div className="min-w-0">
                 <p className="truncate font-extrabold">{product.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{product.category.name}</p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="h-2 w-32 overflow-hidden rounded-full bg-muted">
+              <div className="grid gap-2 min-[420px]:flex min-[420px]:items-center min-[420px]:gap-3">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted min-[420px]:w-32">
                   <div className={low ? "h-full bg-destructive" : "h-full bg-primary"} style={{ width: `${Math.min(product.stock, 100)}%` }} />
                 </div>
                 <span className={low ? "font-extrabold text-destructive" : "font-extrabold"}>{product.stock} units</span>

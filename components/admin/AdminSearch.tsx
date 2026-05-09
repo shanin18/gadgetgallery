@@ -34,9 +34,9 @@ export function AdminSearch({ initialValue = "", placeholder }: { initialValue?:
   }, [pathname, router, searchParams, startTransition, value]);
 
   return (
-    <div className="flex h-11 items-center rounded-md border bg-background px-3">
-      <Search size={17} className="text-muted-foreground" />
-      <input value={value} onChange={(event) => setValue(event.target.value)} placeholder={placeholder} className="h-full flex-1 bg-transparent px-2 text-sm font-semibold outline-none" />
+    <div className="flex h-11 min-w-0 items-center rounded-md border bg-background px-3">
+      <Search size={17} className="shrink-0 text-muted-foreground" />
+      <input value={value} onChange={(event) => setValue(event.target.value)} placeholder={placeholder} className="h-full min-w-0 flex-1 bg-transparent px-2 text-sm font-semibold outline-none" />
     </div>
   );
 }

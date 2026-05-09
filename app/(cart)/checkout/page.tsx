@@ -9,5 +9,9 @@ export default async function CheckoutPage() {
     redirect("/login?callbackUrl=/checkout");
   }
 
+  if (session.user.role === "ADMIN") {
+    redirect("/admin");
+  }
+
   return <CheckoutClient />;
 }

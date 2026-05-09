@@ -4,6 +4,7 @@ import { WishlistRemoveButton } from "@/components/shop/WishlistRemoveButton";
 import type { Product } from "@/lib/catalog";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { redirect } from "next/navigation";
 
 type WishlistProduct = Prisma.ProductGetPayload<{
   include: {
@@ -37,6 +38,11 @@ function toCatalogProduct(product: WishlistProduct): Product {
 
 export default async function WishlistPage() {
   const session = await auth();
+
+  if (session?.user?.role === "ADMIN") {
+    redirect("/admin");
+  }
+
   const wishlist = session?.user?.id
     ? await db.wishlist.findUnique({
         where: { userId: session.user.id },

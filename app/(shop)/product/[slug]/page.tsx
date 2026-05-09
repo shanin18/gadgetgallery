@@ -64,25 +64,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   };
 
   return (
-    <div className="container-page py-10">
+    <div className="container-page py-6 sm:py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
         <ProductGallery name={product.name} images={product.images} />
         <section>
-          <p className="text-sm font-bold uppercase text-primary">{product.category}</p>
-          <h1 className="mt-2 font-display text-4xl font-extrabold">{product.name}</h1>
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+          <p className="text-xs font-bold uppercase text-primary sm:text-sm">{product.category}</p>
+          <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight sm:text-4xl">{product.name}</h1>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs sm:mt-4 sm:gap-3 sm:text-sm">
             <span className="inline-flex items-center gap-1 font-semibold"><Star size={16} className="fill-accent text-accent" /> {product.rating}</span>
             <span className="text-muted-foreground">{product.reviewCount} reviews</span>
             <span className="rounded bg-muted px-2 py-1 font-semibold">{product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}</span>
           </div>
-          <div className="mt-6 flex items-end gap-3">
-            <p className="font-display text-3xl font-extrabold">{formatBDT(product.price)}</p>
-            {product.comparePrice ? <p className="text-lg text-muted-foreground line-through">{formatBDT(product.comparePrice)}</p> : null}
+          <div className="mt-5 flex items-end gap-2 sm:mt-6 sm:gap-3">
+            <p className="font-display text-2xl font-extrabold sm:text-3xl">{formatBDT(product.price)}</p>
+            {product.comparePrice ? <p className="text-sm text-muted-foreground line-through sm:text-lg">{formatBDT(product.comparePrice)}</p> : null}
           </div>
-          <p className="mt-5 leading-7 text-muted-foreground">{product.description}</p>
-          <div className="mt-7 flex gap-3">
-            <AddToCartButton product={product} className="min-w-44" />
+          <p className="mt-4 text-sm leading-6 text-muted-foreground sm:mt-5 sm:text-base sm:leading-7">{product.description}</p>
+          <div className="mt-6 flex gap-3 sm:mt-7">
+            <AddToCartButton product={product} className="min-w-40 sm:min-w-44" />
             <WishlistButton productSlug={product.slug} />
           </div>
           {Object.keys(product.specs).length ? (

@@ -4,6 +4,7 @@ import { AdminOrderFilters } from "@/components/admin/AdminOrderFilters";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { InvoiceButton } from "@/components/admin/InvoiceButton";
 import { OrderDetailsButton } from "@/components/admin/OrderDetailsButton";
+import { StatusBadge } from "@/app/admin/admin-ui";
 import { db } from "@/lib/db";
 import { formatBDT } from "@/lib/utils";
 
@@ -107,12 +108,12 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   }
 
   return (
-    <div className="rounded-lg border bg-card p-5 shadow-sm">
+    <div className="min-w-0 md:bg-card md:p-5">
       <div>
         <p className="text-sm font-bold uppercase text-primary">Fulfillment</p>
         <h2 className="font-display text-2xl font-extrabold">Orders</h2>
       </div>
-      <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_360px]">
+      <div className="mt-5 grid gap-3 xl:grid-cols-[1fr_360px]">
         <AdminSearch initialValue={query} placeholder="Search orders" />
         <AdminOrderFilters confirmation={confirmation} delivery={delivery} />
       </div>
@@ -212,7 +213,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
               };
 
               return (
-                <article key={order.id} className="rounded-lg border bg-background p-4">
+                <article key={order.id} className="min-w-0 rounded-xl bg-card p-3 sm:p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="break-words text-sm font-extrabold">{order.orderNumber}</p>
@@ -224,7 +225,13 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                     <p className="shrink-0 font-display text-sm font-extrabold">{formatBDT(Number(order.total))}</p>
                   </div>
                   <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                    <p className="text-xs font-semibold text-muted-foreground">{formatDate(order.createdAt)}</p>
+                    <div className="grid gap-2">
+                      <p className="text-xs font-semibold text-muted-foreground">{formatDate(order.createdAt)}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <StatusBadge value={order.confirmationStatus} />
+                        <StatusBadge value={order.status} />
+                      </div>
+                    </div>
                     <div className="flex items-center gap-1">
                       <OrderDetailsButton order={orderDetails} />
                       <InvoiceButton order={orderDetails} />

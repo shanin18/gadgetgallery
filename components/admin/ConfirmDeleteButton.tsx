@@ -44,7 +44,7 @@ export function ConfirmDeleteButton({
         className={
           iconOnly
             ? "inline-grid h-8 w-8 place-items-center rounded-md text-destructive transition hover:bg-destructive/10"
-            : "inline-flex h-9 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-bold text-destructive transition hover:bg-destructive/10"
+            : "inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-destructive/10 px-2 text-sm font-bold text-destructive transition hover:bg-destructive/15 md:w-auto"
         }
         onClick={() => setOpen(true)}
         aria-label={`Delete ${itemName}`}
@@ -53,9 +53,9 @@ export function ConfirmDeleteButton({
         {iconOnly ? null : label}
       </button>
       {open ? (
-        <div className="fixed inset-0 z-[100] grid place-items-center bg-foreground/25 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-lg border bg-card shadow-soft">
-            <div className="grid grid-cols-[auto_1fr_auto] items-start gap-3 border-b p-5 text-left">
+        <div className="fixed inset-0 z-[100] grid place-items-end bg-foreground/25 p-0 backdrop-blur-sm sm:place-items-center sm:p-4">
+          <div className="w-full max-w-md rounded-t-xl border bg-card shadow-soft sm:rounded-lg">
+            <div className="grid grid-cols-[auto_1fr_auto] items-start gap-3 border-b p-4 text-left sm:p-5">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-destructive/10 text-destructive">
                 <AlertTriangle size={20} />
               </span>
@@ -69,7 +69,7 @@ export function ConfirmDeleteButton({
                 <X size={18} />
               </button>
             </div>
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               {error ? <p className="mb-4 rounded-md bg-destructive/10 p-3 text-sm font-semibold text-destructive">{error}</p> : null}
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button type="button" className="h-10 rounded-md border px-4 text-sm font-bold hover:bg-muted" onClick={() => setOpen(false)} disabled={isPending}>

@@ -105,10 +105,8 @@ async function ShopContent({ searchParams }: { searchParams: Promise<Record<stri
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h1 className="font-display text-2xl font-extrabold lg:hidden">Shop</h1>
-            <p className="mt-1 font-semibold lg:mt-0">{result.length} products</p>
           </div>
           <ShopMobileFilters categories={categories} initialValues={{ q: get("q"), category: get("category"), min: get("min"), max: get("max"), sort: get("sort") }} />
-          <p className="hidden text-sm text-muted-foreground lg:block">Server-side URL filters</p>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
           {result.map((product) => <ProductCard key={product.id} product={product} />)}

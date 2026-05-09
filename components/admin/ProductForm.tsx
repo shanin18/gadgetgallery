@@ -183,7 +183,7 @@ export function ProductForm({ title, categories, product }: { title: string; cat
   }
 
   return (
-    <form className="rounded-lg border bg-card p-5 shadow-sm" onSubmit={submit}>
+    <form className="min-w-0 md:bg-card md:p-5" onSubmit={submit}>
       <p className="text-sm font-bold uppercase text-primary">Catalog</p>
       <h2 className="font-display text-2xl font-extrabold">{title}</h2>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -238,7 +238,7 @@ export function ProductForm({ title, categories, product }: { title: string; cat
           Stock
           <input value={form.stock} onChange={(event) => updateField("stock", event.target.value)} required min={0} type="number" className="mt-2 h-10 w-full rounded-md border bg-background px-3 outline-none focus:border-primary" />
         </label>
-        <div className="rounded-lg border bg-background p-4 sm:col-span-2">
+        <div className="rounded-xl bg-card p-3 sm:col-span-2 sm:p-4 md:bg-background">
           <p className="text-sm font-extrabold">Badges</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="flex min-h-10 items-center gap-3 rounded-md border px-3 text-sm font-semibold">
@@ -285,7 +285,7 @@ export function ProductForm({ title, categories, product }: { title: string; cat
           />
         </div>
         {form.imageUrls.length ? (
-          <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:col-span-2 min-[420px]:grid-cols-2 lg:grid-cols-4">
             {form.imageUrls.map((url, index) => (
               <div key={`${url}-${index}`} className="overflow-hidden rounded-lg border bg-background">
                 <div className="relative aspect-square bg-muted">
@@ -315,13 +315,13 @@ export function ProductForm({ title, categories, product }: { title: string; cat
           Description
           <textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} required minLength={10} className="mt-2 min-h-32 w-full rounded-md border bg-background p-3 outline-none focus:border-primary" />
         </label>
-        <div className="rounded-lg border bg-background p-4 sm:col-span-2">
+        <div className="rounded-xl bg-card p-3 sm:col-span-2 sm:p-4 md:bg-background">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-extrabold">Specifications</p>
               <p className="mt-1 text-xs font-semibold text-muted-foreground">Add details like material, fit, warranty, battery, or size.</p>
             </div>
-            <button type="button" onClick={addSpec} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold hover:bg-muted">
+            <button type="button" onClick={addSpec} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold hover:bg-muted sm:w-auto">
               <Plus size={16} />
               Add spec
             </button>
@@ -343,7 +343,7 @@ export function ProductForm({ title, categories, product }: { title: string; cat
       </div>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {message ? <p className="text-sm font-semibold text-muted-foreground">{message}</p> : <span />}
-        <Button className="min-w-36" disabled={isPending}>
+        <Button className="w-full min-w-36 sm:w-auto" disabled={isPending}>
           <Save size={17} />
           {isPending ? "Saving..." : "Save product"}
         </Button>

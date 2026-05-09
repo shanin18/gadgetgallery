@@ -11,15 +11,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/login");
   }
   return (
-    <div className="container-page grid gap-6 py-6 lg:grid-cols-[248px_1fr] lg:py-10">
-      <aside className="h-fit rounded-lg border bg-card p-4 shadow-sm lg:sticky lg:top-24">
-        <div className="mb-4 px-1">
+    <div className="container-page grid min-w-0 max-w-full gap-4 py-4 pb-10 md:pb-24 lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-6 lg:py-10 lg:pb-10">
+      <aside className="hidden h-[calc(100vh-5rem)] bg-card p-4 lg:sticky lg:top-20 lg:block">
+        <div className="mb-3 px-1 lg:mb-4">
           <p className="text-xs font-bold uppercase text-primary">Control center</p>
-          <h1 className="mt-1 font-display text-xl font-extrabold">Management</h1>
+          <h1 className="mt-1 font-display text-lg font-extrabold lg:text-xl">Management</h1>
         </div>
         <AdminNav />
       </aside>
-      <section className="min-w-0">{children}</section>
+      <section className="min-w-0 max-w-full">{children}</section>
     </div>
   );
 }

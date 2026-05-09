@@ -2,12 +2,15 @@
 
 import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { LinkButton } from "@/components/ui/Button";
 import { formatBDT } from "@/lib/utils";
 import { cartTotals, useCartStore } from "@/store/cart-store";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity } = useCartStore();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const totals = cartTotals(items);
 
   return (
@@ -50,7 +53,11 @@ export default function CartPage() {
           <div className="flex justify-between"><span>Tax</span><span>{formatBDT(totals.tax)}</span></div>
           <div className="flex justify-between border-t pt-3 text-base font-bold"><span>Total</span><span>{formatBDT(totals.total)}</span></div>
         </div>
-        <LinkButton href="/checkout" className="mt-6 w-full">Checkout</LinkButton>
+        {isAdmin ? (
+          <p className="mt-6 rounded-md bg-muted p-3 text-sm font-semibold text-muted-foreground">Admin accounts cannot place customer orders.</p>
+        ) : (
+          <LinkButton href="/checkout" className="mt-6 w-full">Checkout</LinkButton>
+        )}
       </aside>
     </div>
   );

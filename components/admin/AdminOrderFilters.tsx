@@ -32,11 +32,11 @@ export function AdminOrderFilters({ confirmation, delivery }: { confirmation: st
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid min-w-0 gap-3 grid-cols-2">
       <select
         value={confirmation}
         onChange={(event) => updateFilter("confirmation", event.target.value)}
-        className="h-11 rounded-md border bg-background px-3 text-sm font-bold outline-none focus:border-primary"
+        className="h-11 min-w-0 rounded-md border bg-background px-3 text-sm font-bold outline-none focus:border-primary"
         aria-label="Filter by confirmation status"
       >
         {confirmationOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
@@ -44,7 +44,7 @@ export function AdminOrderFilters({ confirmation, delivery }: { confirmation: st
       <select
         value={delivery}
         onChange={(event) => updateFilter("delivery", event.target.value)}
-        className="h-11 rounded-md border bg-background px-3 text-sm font-bold outline-none focus:border-primary"
+        className="h-11 min-w-0 rounded-md border bg-background px-3 text-sm font-bold outline-none focus:border-primary"
         aria-label="Filter by delivery status"
       >
         {deliveryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}

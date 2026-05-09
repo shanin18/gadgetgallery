@@ -33,11 +33,13 @@
 }
 
 html {
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
+  overflow-x: hidden;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
 }
@@ -50,6 +52,12 @@ a {
 .container-page {
   width: min(1180px, calc(100% - 32px));
   margin-inline: auto;
+}
+
+@media (max-width: 420px) {
+  .container-page {
+    width: min(1180px, calc(100% - 20px));
+  }
 }
 
 .focus-ring {
@@ -68,5 +76,38 @@ a {
 
   100% {
     transform: translateX(300%);
+  }
+}
+
+.g-loader-mark {
+  font-family: var(--font-jakarta), var(--font-inter), sans-serif;
+  font-size: clamp(3.25rem, 8vw, 4.25rem);
+  font-weight: 900;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.35px hsl(var(--primary));
+  background-image: linear-gradient(hsl(var(--primary)), hsl(var(--primary)));
+  background-position: bottom;
+  background-repeat: no-repeat;
+  background-size: 100% 0%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: g-text-fill 1.35s ease-in-out infinite;
+}
+
+@media (min-width: 768px) {
+  .g-loader-mark {
+    -webkit-text-stroke-width: 1.6px;
+  }
+}
+
+@keyframes g-text-fill {
+  0%,
+  100% {
+    background-size: 100% 0%;
+  }
+
+  50% {
+    background-size: 100% 100%;
   }
 }

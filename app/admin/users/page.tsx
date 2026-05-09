@@ -26,7 +26,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
   });
 
   return (
-    <div className="rounded-lg border bg-card p-5 shadow-sm">
+    <div className="min-w-0 md:bg-card md:p-5">
       <p className="text-sm font-bold uppercase text-primary">Customers</p>
       <h2 className="font-display text-2xl font-extrabold">Users</h2>
       <div className="mt-5">
@@ -65,7 +65,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
 
       <div className="mt-5 grid gap-3 md:hidden">
         {users.map((user) => (
-          <div key={user.id} className="rounded-lg border bg-background p-4">
+          <div key={user.id} className="min-w-0 rounded-xl bg-card p-3 sm:p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-extrabold">{user.name ?? "Unnamed user"}</p>

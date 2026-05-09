@@ -3,12 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { LinkButton } from "@/components/ui/Button";
 import { formatBDT } from "@/lib/utils";
 import { cartTotals, useCartStore } from "@/store/cart-store";
 
 export function CartDrawer() {
   const { items, open, toggle, removeItem, setQuantity } = useCartStore();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const totals = cartTotals(items);
 
   return (
@@ -51,10 +54,17 @@ export function CartDrawer() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Link href="/cart" onClick={() => toggle(false)} className="inline-flex h-10 items-center justify-center rounded-md border text-sm font-semibold">View cart</Link>
-              <LinkButton href="/checkout" onClick={() => toggle(false)}>
-                Checkout
-              </LinkButton>
+              {isAdmin ? (
+                <Link href="/admin" onClick={() => toggle(false)} className="inline-flex h-10 items-center justify-center rounded-md bg-muted px-4 text-sm font-semibold text-muted-foreground">
+                  Admin only
+                </Link>
+              ) : (
+                <LinkButton href="/checkout" onClick={() => toggle(false)}>
+                  Checkout
+                </LinkButton>
+              )}
             </div>
+            {isAdmin ? <p className="mt-3 text-xs font-semibold text-muted-foreground">Admin accounts cannot place customer orders.</p> : null}
           </div>
         </div>
       </aside>

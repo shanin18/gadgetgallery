@@ -47,7 +47,7 @@ export function CategoryForm() {
   }
 
   return (
-    <form className="rounded-lg border bg-background p-4" onSubmit={submit}>
+    <form className="rounded-xl bg-card p-3 sm:p-4 md:bg-background" onSubmit={submit}>
       <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
         <label className="block text-sm font-semibold">
           Category name
@@ -62,13 +62,13 @@ export function CategoryForm() {
             setImageFileName(fileName);
           }}
         />
-        <Button className="min-w-32" disabled={isPending}>
+        <Button className="w-full min-w-32 lg:w-auto" disabled={isPending}>
           {isPending ? <Loader2 className="animate-spin" size={17} /> : <Plus size={17} />}
           Add
         </Button>
       </div>
       {toast ? (
-        <div className="fixed bottom-5 right-5 z-[80] w-[min(360px,calc(100vw-32px))] rounded-lg border bg-card p-4 shadow-soft">
+        <div className="fixed bottom-24 right-4 z-[80] w-[min(360px,calc(100vw-32px))] rounded-lg border bg-card p-4 shadow-soft sm:bottom-5 sm:right-5">
           <div className="flex items-start gap-3">
             <span className={`mt-0.5 ${toast.type === "success" ? "text-primary" : "text-destructive"}`}>
               {toast.type === "success" ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
