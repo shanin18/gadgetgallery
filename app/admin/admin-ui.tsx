@@ -7,6 +7,7 @@ const statusStyles: Record<string, string> = {
   SHIPPED: "bg-blue-500/10 text-blue-700",
   DELIVERED: "bg-emerald-500/10 text-emerald-700",
   CANCELLED: "bg-destructive/10 text-destructive",
+  CONFIRMED: "bg-emerald-500/10 text-emerald-700",
   PAID: "bg-emerald-500/10 text-emerald-700",
   FAILED: "bg-destructive/10 text-destructive",
   REFUNDED: "bg-muted text-muted-foreground"
@@ -18,18 +19,20 @@ const icons = {
   SHIPPED: Truck,
   DELIVERED: CheckCircle2,
   CANCELLED: XCircle,
+  CONFIRMED: CheckCircle2,
   PAID: CheckCircle2,
   FAILED: XCircle,
   REFUNDED: Clock3
 };
 
-export function StatusBadge({ value }: { value: string }) {
+export function StatusBadge({ value }: { value?: string | null }) {
+  const displayValue = value ?? "UNKNOWN";
   const Icon = icons[value as keyof typeof icons] ?? Clock3;
 
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-extrabold", statusStyles[value] ?? "bg-muted text-muted-foreground")}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-extrabold", statusStyles[displayValue] ?? "bg-muted text-muted-foreground")}>
       <Icon size={13} />
-      {value.toLowerCase().replaceAll("_", " ")}
+      {displayValue.toLowerCase().replaceAll("_", " ")}
     </span>
   );
 }

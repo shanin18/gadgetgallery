@@ -19,6 +19,12 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum OrderConfirmationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
 enum PaymentStatus {
   PENDING
   PAID
@@ -196,9 +202,14 @@ model Order {
   orderNumber     String        @unique
   userId          String?
   status          OrderStatus   @default(PENDING)
+  confirmationStatus OrderConfirmationStatus @default(PENDING)
+  confirmedAt     DateTime?
+  stockCommitted  Boolean       @default(false)
   paymentStatus   PaymentStatus @default(PENDING)
   paymentMethod   PaymentMethod
   subtotal        Decimal       @db.Decimal(12, 2)
+  discount        Decimal       @default(0) @db.Decimal(12, 2)
+  couponCode      String?
   shipping        Decimal       @db.Decimal(12, 2)
   tax             Decimal       @db.Decimal(12, 2)
   total           Decimal       @db.Decimal(12, 2)

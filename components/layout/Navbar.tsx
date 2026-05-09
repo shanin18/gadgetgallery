@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Heart, LogOut, Menu, Search, Settings, ShoppingBag, UserRound, X } from "lucide-react";
+import { Bell, Heart, Home, LayoutDashboard, LogOut, MessageCircle, ReceiptText, Search, Settings, ShoppingBag, Store, UserRound, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { useCartStore } from "@/store/cart-store";
 
 const nav = [
@@ -23,7 +22,6 @@ type AuthUser = {
 };
 
 export function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [navigating, setNavigating] = useState(false);
   const { data: session, status } = useSession();
@@ -37,7 +35,6 @@ export function Navbar() {
   const pathname = usePathname();
 
   function startNavigation(href: string) {
-    setMobileOpen(false);
     setAccountOpen(false);
     if (href !== pathname) {
       setNavigating(true);
@@ -65,7 +62,7 @@ export function Navbar() {
   return (
     <>
       {navigating ? <NavigationOverlay /> : null}
-      <header className="sticky top-0 z-40 border-b bg-background/86 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 hidden border-b bg-background/86 backdrop-blur-xl md:block">
         <div className="container-page flex h-16 items-center gap-4">
           <Link href="/" onClick={() => startNavigation("/")} className="font-display text-xl font-extrabold">
             Gadget<span className="text-primary">Gallery</span>
@@ -124,62 +121,152 @@ export function Navbar() {
             <ShoppingBag size={21} />
             {count ? <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-xs font-bold text-accent-foreground">{count}</span> : null}
           </button>
-          <Button variant="ghost" className="px-2 md:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label="Open menu">
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </Button>
         </div>
-        {mobileOpen ? (
-          <div className="container-page border-t py-3 md:hidden">
-            {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="block rounded-md px-3 py-3 font-semibold" onClick={() => startNavigation(item.href)}>
-                {item.label}
-              </Link>
-            ))}
-            {user && !isAdmin ? (
-              <Link
-                href="/account/orders"
-                className="block rounded-md px-3 py-3 font-semibold"
-                onClick={() => startNavigation("/account/orders")}
-              >
-                Orders
-              </Link>
-            ) : null}
-            {isAdmin ? (
-              <Link
-                href="/admin"
-                className="block rounded-md px-3 py-3 font-semibold"
-                onClick={() => startNavigation("/admin")}
-              >
-                Dashboard
-              </Link>
-            ) : null}
-            <div className="mt-2 border-t pt-2">
-              {user ? (
-                <>
-                  <div className="flex items-center gap-3 px-3 py-3">
-                    <UserAvatar user={user} size="md" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-extrabold">{user.name ?? "GadgetGallery user"}</p>
-                      <p className="truncate text-xs font-semibold text-muted-foreground">{user.email}</p>
-                    </div>
-                  </div>
-                  <MobileAccountLinks showOrders={!isAdmin} onNavigate={startNavigation} />
-                </>
-            ) : (
-              <Link href="/login" className="mx-3 mt-2 flex h-10 items-center justify-center rounded-md bg-primary px-4 font-semibold text-white" onClick={() => startNavigation("/login")}>Login</Link>
-            )}
-            </div>
-          </div>
-        ) : null}
       </header>
+      <MobileHeader user={user} isAdmin={isAdmin} />
+      <MobileBottomNav count={count} onCartOpen={() => toggleCart(true)} />
     </>
+  );
+}
+
+function MobileHeader({ user, isAdmin }: { user?: AuthUser; isAdmin: boolean }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [open]);
+
+  return (
+    <header className="sticky top-0 z-40 border-b bg-[#eef6ff]/92 backdrop-blur-xl md:hidden">
+      <div className="container-page flex h-16 items-center gap-3">
+        <Link href="/" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary font-display text-lg font-extrabold text-primary-foreground shadow-sm" aria-label="GadgetGallery home">
+          G
+        </Link>
+        <form action="/shop" className="flex h-10 min-w-0 flex-1 items-center rounded-full bg-card px-3 shadow-sm">
+          <Search size={16} className="shrink-0 text-muted-foreground" />
+          <input name="q" placeholder="Search" className="h-full min-w-0 flex-1 bg-transparent px-2 text-sm outline-none" />
+        </form>
+        <div className="relative" ref={menuRef}>
+          {user ? (
+            <button type="button" onClick={() => setOpen((value) => !value)} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-card shadow-sm" aria-label="Open account menu" aria-expanded={open}>
+              <UserAvatar user={user} size="md" />
+            </button>
+          ) : (
+            <Link href="/login" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card shadow-sm" aria-label="Login">
+              <UserRound size={19} />
+            </Link>
+          )}
+          {user ? <MobileAvatarMenu user={user} isAdmin={isAdmin} open={open} onClose={() => setOpen(false)} /> : null}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function MobileAvatarMenu({ user, isAdmin, open, onClose }: { user: AuthUser; isAdmin: boolean; open: boolean; onClose: () => void }) {
+  const links = [
+    ...(isAdmin ? [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }] : []),
+    { href: "/account/profile", label: "Profile", icon: UserRound },
+    { href: "/account/notifications", label: "Notifications", icon: Bell },
+    { href: "/contact", label: "Contact", icon: MessageCircle }
+  ];
+
+  return (
+    <div
+      className={`absolute right-0 top-12 z-50 w-72 origin-top-right overflow-hidden rounded-xl border bg-card shadow-soft transition duration-200 ease-out ${
+        open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-2 scale-95 opacity-0"
+      }`}
+    >
+      <div className="flex items-center gap-3 border-b p-4">
+        <UserAvatar user={user} size="md" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-extrabold">{user.name ?? "GadgetGallery user"}</p>
+          <p className="truncate text-xs font-semibold text-muted-foreground">{user.email}</p>
+        </div>
+        <button type="button" onClick={onClose} className="grid h-8 w-8 place-items-center rounded-md hover:bg-muted" aria-label="Close account menu">
+          <X size={17} />
+        </button>
+      </div>
+      <div className="grid gap-1 p-2">
+        {links.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href} onClick={onClose} className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-extrabold hover:bg-muted">
+              <Icon size={18} />
+              {item.label}
+            </Link>
+          );
+        })}
+        <button type="button" onClick={() => signOut({ callbackUrl: "/" })} className="flex items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-extrabold text-destructive hover:bg-muted">
+          <LogOut size={18} />
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MobileBottomNav({ count, onCartOpen }: { count: number; onCartOpen: () => void }) {
+  const pathname = usePathname();
+  const links = [
+    { href: "/", label: "Home", icon: Home },
+    { href: "/shop", label: "Shop", icon: Store },
+    { href: "/account/orders", label: "Orders", icon: ReceiptText },
+    { href: "/account/wishlist", label: "Wishlist", icon: Heart }
+  ];
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-card/96 shadow-[0_-10px_35px_rgba(15,23,42,0.12)] backdrop-blur-xl md:hidden">
+      <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-center px-4">
+        {links.slice(0, 2).map((item) => {
+          const active = pathname === item.href;
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 text-[11px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>
+              <Icon size={20} />
+              {item.label}
+            </Link>
+          );
+        })}
+        <button type="button" onClick={onCartOpen} className="relative -mt-7 mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-soft" aria-label="Open cart">
+          <ShoppingBag size={22} />
+          {count ? <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-accent-foreground">{count}</span> : null}
+        </button>
+        {links.slice(2).map((item) => {
+          const active = pathname === item.href;
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 text-[11px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>
+              <Icon size={20} />
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
 
 function NavigationOverlay() {
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-background/35 backdrop-blur-md">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/60 border-t-primary shadow-soft" />
+      <div className="relative grid h-12 w-12 place-items-center">
+        <div className="absolute inset-0 rounded-full bg-primary/10 blur-md" />
+        <div className="h-11 w-11 animate-spin rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_75deg,hsl(var(--primary))_145deg,hsl(var(--primary))_230deg,transparent_310deg)] shadow-soft">
+          <div className="m-[4px] h-[calc(100%-8px)] w-[calc(100%-8px)] rounded-full bg-background" />
+        </div>
+        <div className="absolute h-1.5 w-1.5 rounded-full bg-primary" />
+      </div>
     </div>
   );
 }
@@ -241,14 +328,3 @@ function AccountLink({ href, icon: Icon, label, onNavigate }: { href: string; ic
   );
 }
 
-function MobileAccountLinks({ showOrders, onNavigate }: { showOrders: boolean; onNavigate: (href: string) => void }) {
-  return (
-    <>
-      <Link href="/account/profile" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/profile")}>Profile</Link>
-      {showOrders ? <Link href="/account/orders" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/orders")}>Orders</Link> : null}
-      <Link href="/account/wishlist" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/wishlist")}>Wishlist</Link>
-      <Link href="/account/notifications" className="block rounded-md px-3 py-3 font-semibold" onClick={() => onNavigate("/account/notifications")}>Notifications</Link>
-      <button className="block w-full rounded-md px-3 py-3 text-left font-semibold text-destructive" onClick={() => signOut({ callbackUrl: "/" })}>Logout</button>
-    </>
-  );
-}

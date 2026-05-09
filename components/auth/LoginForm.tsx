@@ -13,6 +13,8 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const verified = searchParams.get("verified") === "true";
+  const callbackUrl = searchParams.get("callbackUrl");
+  const safeCallbackUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,7 +35,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/");
+      router.push(safeCallbackUrl);
       router.refresh();
     });
   }

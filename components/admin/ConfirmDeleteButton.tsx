@@ -7,11 +7,13 @@ import { AlertTriangle, Loader2, Trash2, X } from "lucide-react";
 export function ConfirmDeleteButton({
   endpoint,
   itemName,
-  label = "Delete"
+  label = "Delete",
+  iconOnly = false
 }: {
   endpoint: string;
   itemName: string;
   label?: string;
+  iconOnly?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -39,11 +41,16 @@ export function ConfirmDeleteButton({
     <>
       <button
         type="button"
-        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-bold text-destructive transition hover:bg-destructive/10"
+        className={
+          iconOnly
+            ? "inline-grid h-8 w-8 place-items-center rounded-md text-destructive transition hover:bg-destructive/10"
+            : "inline-flex h-9 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-bold text-destructive transition hover:bg-destructive/10"
+        }
         onClick={() => setOpen(true)}
+        aria-label={`Delete ${itemName}`}
       >
         <Trash2 size={15} />
-        {label}
+        {iconOnly ? null : label}
       </button>
       {open ? (
         <div className="fixed inset-0 z-[100] grid place-items-center bg-foreground/25 px-4 backdrop-blur-sm">

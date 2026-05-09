@@ -15,6 +15,7 @@ export const authConfig = {
 
       if (pathname.startsWith("/admin")) return isLoggedIn && role === "ADMIN";
       if (pathname.startsWith("/account")) return isLoggedIn;
+      if (pathname === "/checkout") return isLoggedIn;
       return true;
     },
     jwt({ token, user, trigger, session }) {

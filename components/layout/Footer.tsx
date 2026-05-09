@@ -3,7 +3,7 @@ import { Camera, CreditCard, Mail, PackageCheck, Share2, Truck } from "lucide-re
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t bg-card">
+    <footer className="mt-6 border-t bg-card pb-20 md:mt-20 md:pb-0">
       <div className="container-page grid gap-10 py-12 md:grid-cols-[1.3fr_0.7fr_0.7fr_1fr]">
         <div>
           <h2 className="font-display text-xl font-extrabold">GadgetGallery</h2>

@@ -24,16 +24,18 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jakarta.variable} font-sans antialiased`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${jakarta.variable} min-h-screen font-sans antialiased`} suppressHydrationWarning>
         <SessionProvider>
           <WishlistProvider>
-            <Suspense fallback={null}>
-              <RouteLoadingIndicator />
-            </Suspense>
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
-            <CartDrawer />
+            <div className="flex min-h-screen flex-col">
+              <Suspense fallback={null}>
+                <RouteLoadingIndicator />
+              </Suspense>
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <CartDrawer />
+            </div>
           </WishlistProvider>
         </SessionProvider>
       </body>

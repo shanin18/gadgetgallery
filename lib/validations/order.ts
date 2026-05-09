@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const checkoutSchema = z.object({
-  items: z.array(z.object({ productId: z.string(), quantity: z.number().int().positive() })).min(1),
+  items: z.array(z.object({ productId: z.string(), productSlug: z.string().optional(), quantity: z.number().int().positive() })).min(1),
+  couponCode: z.string().trim().min(3).max(40).optional(),
   paymentMethod: z.enum(["STRIPE", "PAYPAL", "SSLCOMMERZ", "COD"]),
   shippingAddress: z.object({
     name: z.string().min(2),
