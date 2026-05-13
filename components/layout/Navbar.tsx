@@ -43,6 +43,7 @@ export function Navbar() {
   const user = session?.user;
   const pathname = usePathname();
   const isAdmin = user?.role === "ADMIN" || pathname.startsWith("/admin");
+  const isActiveHref = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
   function startNavigation(href: string) {
     setAccountOpen(false);
@@ -68,7 +69,15 @@ export function Navbar() {
           </Link>
           <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex lg:static lg:translate-x-0">
             {nav.map((item) => (
-              <Link key={item.href} href={item.href} onClick={() => startNavigation(item.href)} className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground">
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => startNavigation(item.href)}
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                  isActiveHref(item.href) ? "!text-primary font-extrabold" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+                aria-current={isActiveHref(item.href) ? "page" : undefined}
+              >
                 {item.label}
               </Link>
             ))}
@@ -76,7 +85,10 @@ export function Navbar() {
               <Link
                 href="/account/orders"
                 onClick={() => startNavigation("/account/orders")}
-                className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                  isActiveHref("/account/orders") ? "!text-primary font-extrabold" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+                aria-current={isActiveHref("/account/orders") ? "page" : undefined}
               >
                 Orders
               </Link>
@@ -85,7 +97,10 @@ export function Navbar() {
               <Link
                 href="/admin"
                 onClick={() => startNavigation("/admin")}
-                className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                  pathname.startsWith("/admin") ? "!text-primary font-extrabold" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+                aria-current={pathname.startsWith("/admin") ? "page" : undefined}
               >
                 Dashboard
               </Link>
@@ -241,6 +256,8 @@ function MobileBottomNav({ count, onCartOpen, isAdmin }: { count: number; onCart
         { href: "/account/orders", label: "Orders", icon: ReceiptText },
         { href: "/account/wishlist", label: "Wishlist", icon: Heart }
       ];
+  const isMobileActive = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  const centerActive = isAdmin ? pathname.startsWith("/admin") : pathname === "/cart" || pathname === "/checkout";
 
   useEffect(() => {
     if (!adminMenuOpen) return;
@@ -291,41 +308,47 @@ function MobileBottomNav({ count, onCartOpen, isAdmin }: { count: number; onCart
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-card/96 shadow-[0_-10px_35px_rgba(15,23,42,0.12)] backdrop-blur-xl md:hidden">
         <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-center px-4">
           {links.slice(0, 2).map((item) => {
-            const active = pathname === item.href;
+            const active = isMobileActive(item.href);
             const Icon = item.icon;
             return (
-              <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 text-[11px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>
-                <Icon size={20} />
+              <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 text-[11px] transition ${active ? "!text-primary font-extrabold" : "font-bold text-muted-foreground"}`} aria-current={active ? "page" : undefined}>
+                <span className="grid h-7 w-7 place-items-center rounded-full transition">
+                  <Icon size={20} />
+                </span>
                 {item.label}
               </Link>
             );
           })}
           {isAdmin ? (
-            <button type="button" onClick={openAdminMenu} className="relative -mt-7 mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-soft" aria-label="Open admin menu" aria-expanded={adminMenuOpen}>
+            <button type="button" onClick={openAdminMenu} className={`relative -mt-7 mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-soft transition ${centerActive ? "brightness-95" : ""}`} aria-label="Open admin menu" aria-expanded={adminMenuOpen} aria-current={centerActive ? "page" : undefined}>
               <LayoutDashboard size={22} />
             </button>
           ) : (
-            <button type="button" onClick={onCartOpen} className="relative -mt-7 mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-soft" aria-label="Open cart">
+            <button type="button" onClick={onCartOpen} className={`relative -mt-7 mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-soft transition ${centerActive ? "brightness-95" : ""}`} aria-label="Open cart" aria-current={centerActive ? "page" : undefined}>
               <ShoppingBag size={22} />
               {count ? <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-accent-foreground">{count}</span> : null}
             </button>
           )}
           {links.slice(2, 3).map((item) => {
-            const active = pathname === item.href;
+            const active = isMobileActive(item.href);
             const Icon = item.icon;
             return (
-              <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 text-[11px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>
-                <Icon size={20} />
+              <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 text-[11px] transition ${active ? "!text-primary font-extrabold" : "font-bold text-muted-foreground"}`} aria-current={active ? "page" : undefined}>
+                <span className="grid h-7 w-7 place-items-center rounded-full transition">
+                  <Icon size={20} />
+                </span>
                 {item.label}
               </Link>
             );
           })}
           {links.slice(3).map((item) => {
-            const active = pathname === item.href;
+            const active = isMobileActive(item.href);
             const Icon = item.icon;
             return (
-              <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 text-[11px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>
-                <Icon size={20} />
+              <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 text-[11px] transition ${active ? "!text-primary font-extrabold" : "font-bold text-muted-foreground"}`} aria-current={active ? "page" : undefined}>
+                <span className="grid h-7 w-7 place-items-center rounded-full transition">
+                  <Icon size={20} />
+                </span>
                 {item.label}
               </Link>
             );
