@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Star } from "lucide-react";
 import { ProductGallery } from "@/components/shop/ProductGallery";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { WishlistButton } from "@/components/shop/WishlistButton";
 import { ProductPurchaseControls } from "@/components/shop/ProductPurchaseControls";
 import { ProductReviews } from "@/components/shop/ProductReviews";
+import { RatingStars } from "@/components/shop/RatingStars";
 import { db } from "@/lib/db";
 import { mapDbProduct } from "@/lib/product-mapper";
-import { formatBDT } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -58,10 +57,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     comment: string | null;
     images: unknown;
     createdAt: Date;
+    userId: string;
     userName: string | null;
     userImage: string | null;
   }[]>`
-    SELECT r."id", r."rating", r."comment", r."images", r."createdAt", u."name" AS "userName", u."image" AS "userImage"
+    SELECT r."id", r."rating", r."comment", r."images", r."createdAt", r."userId", u."name" AS "userName", u."image" AS "userImage"
     FROM "Review" r
     INNER JOIN "User" u ON u."id" = r."userId"
     WHERE r."productId" = ${productRecord.id}
@@ -88,15 +88,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <p className="text-xs font-bold uppercase text-primary sm:text-sm">{product.brand || "GadgetGallery"}</p>
           <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight sm:text-4xl">{product.name}</h1>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs sm:mt-4 sm:gap-3 sm:text-sm">
-            <span className="inline-flex items-center gap-1 font-semibold"><Star size={16} className="fill-accent text-accent" /> {product.rating}</span>
+            <span className="inline-flex items-center gap-1 font-semibold"><RatingStars rating={product.rating} size={16} /> {product.rating}</span>
             <span className="text-muted-foreground">{product.reviewCount} reviews</span>
             <span className="rounded bg-muted px-2 py-1 font-semibold">{product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}</span>
           </div>
-          <div className="mt-5 flex items-end gap-2 sm:mt-6 sm:gap-3">
-            <p className="font-display text-2xl font-extrabold sm:text-3xl">{formatBDT(product.price)}</p>
-            {product.comparePrice ? <p className="text-sm text-muted-foreground line-through sm:text-lg">{formatBDT(product.comparePrice)}</p> : null}
-          </div>
-          <p className="mt-4 text-sm leading-6 text-muted-foreground sm:mt-5 sm:text-base sm:leading-7">{product.description}</p>
           <ProductPurchaseControls product={product} />
           <div className="mt-3 flex gap-3">
             <WishlistButton productSlug={product.slug} />
@@ -125,6 +120,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           images: Array.isArray(review.images) ? review.images.filter((image): image is string => typeof image === "string") : [],
           createdAt: review.createdAt.toISOString(),
           user: {
+            id: review.userId,
             name: review.userName,
             image: review.userImage
           }

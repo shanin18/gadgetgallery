@@ -10,6 +10,27 @@ const reviewSchema = z.object({
   images: z.array(z.string().trim().min(1)).max(6).default([])
 });
 
+const deleteReviewSchema = z.object({
+  reviewId: z.string().min(1),
+  productId: z.string().min(1)
+});
+
+async function updateProductReviewStats(productId: string) {
+  const aggregate = await db.review.aggregate({
+    where: { productId },
+    _avg: { rating: true },
+    _count: { rating: true }
+  });
+
+  await db.product.update({
+    where: { id: productId },
+    data: {
+      rating: Number((aggregate._avg.rating ?? 0).toFixed(1)),
+      reviewCount: aggregate._count.rating
+    }
+  });
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const productId = searchParams.get("productId");
@@ -24,10 +45,11 @@ export async function GET(request: Request) {
     comment: string | null;
     images: unknown;
     createdAt: Date;
+    userId: string;
     userName: string | null;
     userImage: string | null;
   }[]>`
-    SELECT r."id", r."rating", r."comment", r."images", r."createdAt", u."name" AS "userName", u."image" AS "userImage"
+    SELECT r."id", r."rating", r."comment", r."images", r."createdAt", r."userId", u."name" AS "userName", u."image" AS "userImage"
     FROM "Review" r
     INNER JOIN "User" u ON u."id" = r."userId"
     WHERE r."productId" = ${productId}
@@ -41,6 +63,7 @@ export async function GET(request: Request) {
     images: Array.isArray(row.images) ? row.images.filter((image): image is string => typeof image === "string") : [],
     createdAt: row.createdAt,
     user: {
+      id: row.userId,
       name: row.userName,
       image: row.userImage
     }
@@ -92,23 +115,40 @@ export async function POST(request: Request) {
       WHERE "id" = ${review.id}
     `;
 
-    const aggregate = await db.review.aggregate({
-      where: { productId: parsed.data.productId },
-      _avg: { rating: true },
-      _count: { rating: true }
-    });
-
-    await db.product.update({
-      where: { id: parsed.data.productId },
-      data: {
-        rating: Number((aggregate._avg.rating ?? 0).toFixed(1)),
-        reviewCount: aggregate._count.rating
-      }
-    });
+    await updateProductReviewStats(parsed.data.productId);
 
     return NextResponse.json({ review }, { status: 201 });
   } catch (error) {
     console.error("Review save failed.", error);
     return NextResponse.json({ error: "Review could not be saved. Please refresh and try again." }, { status: 500 });
   }
+}
+
+export async function DELETE(request: Request) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Please log in to delete this review." }, { status: 401 });
+  }
+
+  const parsed = deleteReviewSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid review details." }, { status: 400 });
+  }
+
+  const deleted = await db.review.deleteMany({
+    where: {
+      id: parsed.data.reviewId,
+      productId: parsed.data.productId,
+      userId: session.user.id
+    }
+  });
+
+  if (!deleted.count) {
+    return NextResponse.json({ error: "Review not found or you do not have permission." }, { status: 404 });
+  }
+
+  await updateProductReviewStats(parsed.data.productId);
+
+  return NextResponse.json({ ok: true });
 }

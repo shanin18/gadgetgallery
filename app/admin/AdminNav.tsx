@@ -81,7 +81,7 @@ export function AdminNav({ variant = "sidebar" }: { variant?: "sidebar" | "mobil
             }}
             className={cn(
               "inline-flex h-10 shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition",
-              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              active ? "bg-primary !text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
             aria-current={active ? "page" : undefined}
           >

@@ -97,7 +97,7 @@ export default async function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <LinkButton href="/shop">Shop products <ArrowRight size={16} /></LinkButton>
-              <LinkButton href="/shop?sort=rating" variant="outline">Top rated</LinkButton>
+              <LinkButton href="/shop?sort=rating" variant="outline" className="!text-foreground">Top rated</LinkButton>
             </div>
             <div className="mt-8 grid gap-3 text-sm font-semibold sm:grid-cols-3">
               <span className="inline-flex items-center gap-2"><Truck size={17} className="text-primary" /> Fast delivery</span>
@@ -194,7 +194,7 @@ export default async function HomePage() {
               <p className="inline-flex items-center gap-2 text-sm font-extrabold uppercase text-primary-foreground/90"><BadgePercent size={16} /> Deals</p>
               <h2 className="mt-3 font-display text-3xl font-extrabold">Save on selected tech</h2>
               <p className="mt-3 text-sm leading-6 text-primary-foreground/85">A small set of discounted gadgets and accessories, kept short so customers can decide quickly.</p>
-              <Link href="/shop?sort=newest" className="mt-6 inline-flex w-fit items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-extrabold text-accent-foreground">
+              <Link href="/shop?sort=newest" className="mt-6 inline-flex w-fit items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground">
                 Explore deals <ArrowRight size={16} />
               </Link>
             </div>
@@ -239,7 +239,7 @@ export default async function HomePage() {
               Browse the full catalog, filter by category, compare prices and add products to cart in a few clicks.
             </p>
           </div>
-          <Link href="/shop" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-extrabold text-primary-foreground transition hover:brightness-95">
+          <Link href="/shop" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold !text-primary-foreground transition hover:brightness-95">
             Go to shop <ArrowRight size={16} />
           </Link>
         </div>

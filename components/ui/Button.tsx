@@ -37,7 +37,7 @@ export function LinkButton({ className, variant = "primary", href, ...props }: L
     <Link
       href={href}
       className={cn(
-        "focus-ring inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold transition",
+        "focus-ring inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold transition !text-primary-foreground",
         variants[variant],
         className
       )}

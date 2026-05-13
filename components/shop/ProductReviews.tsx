@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight, ImageUp, Star, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImageUp, MoreHorizontal, Pencil, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { RatingStars } from "@/components/shop/RatingStars";
 
 type Review = {
   id: string;
@@ -11,7 +12,7 @@ type Review = {
   comment: string | null;
   images: string[] | null;
   createdAt: string | Date;
-  user: { name: string | null; image: string | null };
+  user: { id?: string | null; name: string | null; image: string | null };
 };
 
 function fileToDataUrl(file: File) {
@@ -27,10 +28,12 @@ function fileToDataUrl(file: File) {
 }
 
 export function ProductReviews({ productId, initialReviews }: { productId: string; initialReviews: Review[] }) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [reviews, setReviews] = useState(initialReviews);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [rating, setRating] = useState(5);
@@ -54,6 +57,20 @@ export function ProductReviews({ productId, initialReviews }: { productId: strin
       return;
     }
 
+    setEditingReviewId(null);
+    setRating(5);
+    setComment("");
+    setImageUrls([]);
+    setMounted(true);
+    window.requestAnimationFrame(() => setOpen(true));
+  }
+
+  function openEditModal(review: Review) {
+    setMenuOpenId(null);
+    setEditingReviewId(review.id);
+    setRating(review.rating);
+    setComment(review.comment ?? "");
+    setImageUrls(Array.isArray(review.images) ? review.images : []);
     setMounted(true);
     window.requestAnimationFrame(() => setOpen(true));
   }
@@ -62,6 +79,7 @@ export function ProductReviews({ productId, initialReviews }: { productId: strin
     setOpen(false);
     window.setTimeout(() => {
       setMounted(false);
+      setEditingReviewId(null);
       setMessage("");
     }, 180);
   }
@@ -116,6 +134,12 @@ export function ProductReviews({ productId, initialReviews }: { productId: strin
     }
   }
 
+  async function refreshReviews() {
+    const listResponse = await fetch(`/api/reviews?productId=${productId}`);
+    const listData = await listResponse.json();
+    setReviews(listData.reviews ?? []);
+  }
+
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
@@ -144,13 +168,37 @@ export function ProductReviews({ productId, initialReviews }: { productId: strin
         return;
       }
 
-      const listResponse = await fetch(`/api/reviews?productId=${productId}`);
-      const listData = await listResponse.json();
-      setReviews(listData.reviews ?? []);
+      await refreshReviews();
       setComment("");
       setImageUrls([]);
-      setMessage("Review saved.");
+      setMessage(editingReviewId ? "Review updated." : "Review saved.");
       closeReviewModal();
+    });
+  }
+
+  function deleteReview(reviewId: string) {
+    setMenuOpenId(null);
+    setMessage("");
+
+    startTransition(async () => {
+      const response = await fetch("/api/reviews", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId, productId })
+      });
+
+      if (response.status === 401) {
+        window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setMessage(data.error ?? "Could not delete review.");
+        return;
+      }
+
+      await refreshReviews();
     });
   }
 
@@ -161,17 +209,50 @@ export function ProductReviews({ productId, initialReviews }: { productId: strin
           <p className="text-sm font-bold uppercase text-primary">Reviews</p>
           <h2 className="mt-1 font-display text-2xl font-extrabold">Customer reviews</h2>
         </div>
-        <button type="button" onClick={openReviewModal} className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-primary px-4 text-sm font-extrabold text-primary-foreground transition hover:brightness-95">
+        <button type="button" onClick={openReviewModal} className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:brightness-95">
           Add review
         </button>
       </div>
 
       <div className="mt-5 grid gap-3">
-        {reviews.length ? reviews.map((review) => (
+        {reviews.length ? reviews.map((review) => {
+          const isOwner = Boolean(session?.user?.id && review.user.id === session.user.id);
+
+          return (
           <article key={review.id} className="rounded-lg border bg-card p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-extrabold">{review.user.name ?? "Customer"}</p>
-              <span className="inline-flex items-center gap-1 text-sm font-bold"><Star size={15} className="fill-accent text-accent" /> {review.rating}</span>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-extrabold">{review.user.name ?? "Customer"}</p>
+                <span className="mt-1 inline-flex items-center gap-1 text-sm font-bold">
+                  <RatingStars rating={review.rating} />
+                  {review.rating}
+                </span>
+              </div>
+              {isOwner ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpenId((current) => current === review.id ? null : review.id)}
+                    className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label="Review actions"
+                    aria-expanded={menuOpenId === review.id}
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                  {menuOpenId === review.id ? (
+                    <div className="absolute right-0 top-9 z-20 w-36 overflow-hidden rounded-md border bg-card p-1 shadow-soft">
+                      <button type="button" onClick={() => openEditModal(review)} className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm font-bold hover:bg-muted">
+                        <Pencil size={14} />
+                        Edit
+                      </button>
+                      <button type="button" onClick={() => deleteReview(review.id)} className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm font-bold text-destructive hover:bg-destructive/10">
+                        <Trash2 size={14} />
+                        Delete
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
             {review.comment ? <p className="mt-2 text-sm leading-6 text-muted-foreground">{review.comment}</p> : null}
             {Array.isArray(review.images) && review.images.length ? (
@@ -190,7 +271,8 @@ export function ProductReviews({ productId, initialReviews }: { productId: strin
               </div>
             ) : null}
           </article>
-        )) : <p className="rounded-lg border bg-card p-5 text-sm font-semibold text-muted-foreground">No reviews yet.</p>}
+          );
+        }) : <p className="rounded-lg border bg-card p-5 text-sm font-semibold text-muted-foreground">No reviews yet.</p>}
       </div>
 
       {mounted ? (
@@ -201,8 +283,8 @@ export function ProductReviews({ productId, initialReviews }: { productId: strin
           >
             <div className="flex items-start justify-between gap-4 border-b p-4">
               <div>
-                <p className="text-xs font-bold uppercase text-primary">Add review</p>
-                <h3 className="font-display text-xl font-extrabold">Share your experience</h3>
+                <p className="text-xs font-semibold uppercase text-primary">{editingReviewId ? "Edit review" : "Add review"}</p>
+                <h3 className="font-display text-xl font-extrabold">{editingReviewId ? "Update your experience" : "Share your experience"}</h3>
               </div>
               <button type="button" onClick={closeReviewModal} className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-muted" aria-label="Close review form">
                 <X size={18} />
@@ -251,8 +333,8 @@ export function ProductReviews({ productId, initialReviews }: { productId: strin
                   </div>
                 ) : null}
               </div>
-              <button disabled={isPending || isUploading} className="h-10 rounded-md bg-primary px-4 text-sm font-extrabold text-primary-foreground disabled:opacity-60">
-                {isPending ? "Saving..." : "Submit review"}
+              <button disabled={isPending || isUploading} className="h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60">
+                {isPending ? "Saving..." : editingReviewId ? "Update review" : "Submit review"}
               </button>
               {message ? <p className="text-sm font-semibold text-destructive">{message}</p> : null}
             </form>

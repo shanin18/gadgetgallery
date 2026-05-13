@@ -335,26 +335,27 @@ export function ProductForm({ title, categories, product }: { title: string; cat
           />
         </div>
         {form.imageUrls.length ? (
-          <div className="grid gap-3 sm:col-span-2 min-[420px]:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-3 gap-2 sm:col-span-2 min-[420px]:grid-cols-4 sm:gap-3 lg:grid-cols-4">
             {form.imageUrls.map((url, index) => (
               <div key={`${url}-${index}`} className="overflow-hidden rounded-lg border bg-background">
                 <div className="relative aspect-square bg-muted">
-                  <Image src={url} alt={`${form.name || "Product"} image ${index + 1}`} fill sizes="(min-width: 1024px) 180px, 50vw" className="object-cover" />
-                  {index === 0 ? <span className="absolute left-2 top-2 rounded-md bg-primary px-2 py-1 text-xs font-extrabold text-primary-foreground">Thumbnail</span> : null}
+                  <Image src={url} alt={`${form.name || "Product"} image ${index + 1}`} fill sizes="(min-width: 1024px) 180px, (min-width: 420px) 25vw, 33vw" className="object-cover" />
+                  {index === 0 ? <span className="absolute left-1 top-1 rounded bg-primary px-1.5 py-0.5 text-[9px] font-extrabold text-primary-foreground sm:left-2 sm:top-2 sm:rounded-md sm:px-2 sm:py-1 sm:text-xs">Thumbnail</span> : null}
                 </div>
-                <div className="grid grid-cols-2 gap-2 p-2">
+                <div className="grid grid-cols-2 gap-1 p-1 sm:gap-2 sm:p-2">
                   <button
                     type="button"
-                    className="inline-flex h-9 items-center justify-center gap-1 rounded-md border text-xs font-bold hover:bg-muted disabled:cursor-default disabled:opacity-60"
+                    className="inline-flex h-8 items-center justify-center gap-1 rounded-md border text-[0px] font-bold hover:bg-muted disabled:cursor-default disabled:opacity-60 sm:h-9 sm:text-xs"
                     onClick={() => setThumbnail(index)}
                     disabled={index === 0}
+                    aria-label={`Set image ${index + 1} as primary`}
                   >
                     <Star size={14} />
-                    Primary
+                    <span className="hidden sm:inline">Primary</span>
                   </button>
-                  <button type="button" className="inline-flex h-9 items-center justify-center gap-1 rounded-md border text-xs font-bold text-destructive hover:bg-destructive/10" onClick={() => removeImage(index)}>
+                  <button type="button" className="inline-flex h-8 items-center justify-center gap-1 rounded-md border text-[0px] font-bold text-destructive hover:bg-destructive/10 sm:h-9 sm:text-xs" onClick={() => removeImage(index)} aria-label={`Remove image ${index + 1}`}>
                     <Trash2 size={14} />
-                    Remove
+                    <span className="hidden sm:inline">Remove</span>
                   </button>
                 </div>
               </div>

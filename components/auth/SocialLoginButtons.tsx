@@ -46,7 +46,7 @@ export function SocialLoginButtons() {
             key={providerId}
             type="button"
             onClick={() => signIn(providerId, { callbackUrl: "/" })}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border bg-background px-3 text-sm font-extrabold transition hover:bg-muted"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border bg-background px-3 text-sm font-semibold transition hover:bg-muted"
           >
             <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-xs font-black text-primary-foreground">{provider.mark}</span>
             {provider.label}

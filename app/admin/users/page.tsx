@@ -1,4 +1,6 @@
 import { AdminSearch } from "@/components/admin/AdminSearch";
+import { UserActions } from "@/components/admin/UserActions";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 function formatDate(date: Date) {
@@ -6,6 +8,7 @@ function formatDate(date: Date) {
 }
 
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const session = await auth();
   const params = await searchParams;
   const queryValue = params.q;
   const query = (Array.isArray(queryValue) ? queryValue[0] : queryValue)?.trim() ?? "";
@@ -43,10 +46,14 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
               <th>Orders</th>
               <th>Reviews</th>
               <th>Joined</th>
+              <th className="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {users.map((user) => {
+              const isCurrentUser = user.id === session?.user?.id;
+
+              return (
               <tr key={user.id} className="border-b last:border-0">
                 <td className="py-4">
                   <p className="font-extrabold">{user.name ?? "Unnamed user"}</p>
@@ -57,14 +64,23 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                 <td>{user._count.orders}</td>
                 <td>{user._count.reviews}</td>
                 <td>{formatDate(user.createdAt)}</td>
+                <td className="py-4">
+                  <div className="flex justify-end">
+                    <UserActions userId={user.id} role={user.role} name={user.name ?? user.email} disabled={isCurrentUser} />
+                  </div>
+                </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       <div className="mt-5 grid gap-3 md:hidden">
-        {users.map((user) => (
+        {users.map((user) => {
+          const isCurrentUser = user.id === session?.user?.id;
+
+          return (
           <div key={user.id} className="min-w-0 rounded-xl bg-card p-3 sm:p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -78,8 +94,13 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
               <div className="rounded-md bg-muted p-2"><p className="font-extrabold">{user._count.reviews}</p><p className="text-xs text-muted-foreground">Reviews</p></div>
               <div className="rounded-md bg-muted p-2"><p className="font-extrabold">{user.emailVerified ? "Yes" : "No"}</p><p className="text-xs text-muted-foreground">Verified</p></div>
             </div>
+            <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
+              <p className="text-xs font-semibold text-muted-foreground">{isCurrentUser ? "Current admin" : "Manage user"}</p>
+              <UserActions userId={user.id} role={user.role} name={user.name ?? user.email} disabled={isCurrentUser} />
+            </div>
           </div>
-        ))}
+          );
+        })}
         {!users.length ? <p className="rounded-md bg-muted p-4 text-sm font-semibold text-muted-foreground">No users found.</p> : null}
       </div>
     </div>

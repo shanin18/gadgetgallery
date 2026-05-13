@@ -88,12 +88,12 @@ export function HomeProductCard({ product }: { product: Product }) {
             type="button"
             disabled={!inStock || sessionLoading || isAdmin}
             onClick={() => addItem(product)}
-            className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-2 text-xs font-extrabold text-primary-foreground transition hover:brightness-95 disabled:bg-muted disabled:text-muted-foreground sm:h-9 sm:text-sm"
+            className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-2 text-xs font-semibold text-primary-foreground transition hover:brightness-95 disabled:bg-muted disabled:text-muted-foreground sm:h-9 sm:text-sm"
           >
             <ShoppingCart size={15} />
             <span className="sm:inline">{sessionLoading ? "..." : isAdmin ? "Admin" : "Add"}</span>
           </button>
-          <Link href={`/product/${product.slug}`} className="hidden h-9 items-center justify-center rounded-md border px-3 text-sm font-extrabold transition hover:bg-muted sm:inline-flex">
+          <Link href={`/product/${product.slug}`} className="hidden h-9 items-center justify-center rounded-md border px-3 text-sm font-semibold transition hover:bg-muted sm:inline-flex">
             View
           </Link>
         </div>

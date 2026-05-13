@@ -32,7 +32,13 @@ export function ProductPurchaseControls({ product }: { product: Product }) {
   }
 
   return (
-    <div className="mt-6 sm:mt-7">
+    <>
+      <div className="mt-5 flex items-end gap-2 sm:mt-6 sm:gap-3">
+        <p className="font-display text-2xl font-extrabold sm:text-3xl">{formatBDT(displayPrice)}</p>
+        {product.comparePrice ? <p className="text-sm text-muted-foreground line-through sm:text-lg">{formatBDT(product.comparePrice)}</p> : null}
+      </div>
+      <p className="mt-4 text-sm leading-6 text-muted-foreground sm:mt-5 sm:text-base sm:leading-7">{product.description}</p>
+      <div className="mt-6 sm:mt-7">
       {product.options.length ? (
         <div className="mb-5 grid gap-4 rounded-lg border bg-card p-4">
           {product.options.map((group) => (
@@ -49,22 +55,21 @@ export function ProductPurchaseControls({ product }: { product: Product }) {
                       className={`rounded-md border px-3 py-2 text-sm font-bold transition ${active ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
                     >
                       {value.label}
-                      {value.priceDelta ? <span className="ml-1 text-xs opacity-80">{value.priceDelta > 0 ? "+" : ""}{formatBDT(value.priceDelta)}</span> : null}
                     </button>
                   );
                 })}
               </div>
             </div>
           ))}
-          <p className="text-sm font-bold text-muted-foreground">Selected price: <span className="text-foreground">{formatBDT(displayPrice)}</span></p>
         </div>
       ) : null}
       <div className="flex flex-wrap gap-3">
         <AddToCartButton product={product} selectedOptions={selectedOptions} className="min-w-40 sm:min-w-44" />
-        <button type="button" onClick={buyNow} disabled={sessionLoading || isAdmin || product.stock <= 0} className="inline-flex h-10 min-w-36 items-center justify-center rounded-md bg-accent px-4 text-sm font-extrabold text-accent-foreground transition hover:bg-accent/90 disabled:bg-muted disabled:text-muted-foreground">
+        <button type="button" onClick={buyNow} disabled={sessionLoading || isAdmin || product.stock <= 0} className="inline-flex h-10 min-w-36 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90 disabled:bg-muted disabled:text-muted-foreground">
           {sessionLoading ? "Loading" : isAdmin ? "Admin only" : "Buy now"}
         </button>
       </div>
     </div>
+    </>
   );
 }

@@ -39,7 +39,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
 
       <div className="mt-4 grid grid-cols-[minmax(0,1fr)_44px] gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
         <AdminSearch initialValue={query} placeholder="Search products" />
-        <Link href="/admin/products/new" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-bold text-primary-foreground sm:px-4">
+        <Link href="/admin/products/new" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-bold !text-primary-foreground sm:px-4">
           <Plus size={17} />
           <span className="sr-only sm:not-sr-only">Add product</span>
         </Link>
