@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { LoadingOverlay } from "@/components/layout/LoadingOverlay";
 
 export function RouteLoadingIndicator() {
   const pathname = usePathname();
@@ -12,8 +13,10 @@ export function RouteLoadingIndicator() {
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
-      const target = event.target as HTMLElement | null;
-      const link = target?.closest("a");
+      const target = event.target;
+      if (!target || !("closest" in target) || typeof target.closest !== "function") return;
+
+      const link = target.closest("a");
       if (!link) return;
 
       const href = link.getAttribute("href");
@@ -33,9 +36,5 @@ export function RouteLoadingIndicator() {
 
   if (!targetUrl || targetUrl === currentUrl) return null;
 
-  return (
-    <div className="pointer-events-none fixed left-0 top-0 z-[90] h-1 w-full overflow-hidden bg-primary/15">
-      <div className="h-full w-1/3 animate-[route-progress_1s_ease-in-out_infinite] bg-primary" />
-    </div>
-  );
+  return <LoadingOverlay />;
 }

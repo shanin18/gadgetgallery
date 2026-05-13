@@ -14,7 +14,6 @@ type OrderEmailInput = {
   subtotal: number;
   discount?: number;
   shipping: number;
-  tax: number;
   total: number;
   shippingAddress: {
     name: string;
@@ -136,7 +135,6 @@ function orderEmailHtml(order: OrderEmailInput) {
                     ${totalRow("Subtotal", order.subtotal)}
                     ${order.discount ? totalRow("Discount", -order.discount) : ""}
                     ${totalRow("Delivery charge", order.shipping)}
-                    ${totalRow("Tax", order.tax)}
                     <tr>
                       <td style="padding:16px 0 0;color:#101827;font-size:18px;font-weight:800">Total</td>
                       <td align="right" style="padding:16px 0 0;color:#101827;font-size:18px;font-weight:800">${formatBDT(order.total)}</td>

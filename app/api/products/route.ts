@@ -76,5 +76,11 @@ export async function POST(request: Request) {
     }
   });
 
+  await db.$executeRaw`
+    UPDATE "Product"
+    SET "options" = ${JSON.stringify(parsed.data.options)}::jsonb
+    WHERE "id" = ${product.id}
+  `;
+
   return NextResponse.json({ product }, { status: 201 });
 }

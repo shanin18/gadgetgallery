@@ -35,12 +35,13 @@ export function CheckoutClient() {
   const [error, setError] = useState("");
   const visibleMethods = methods.filter((method) => method.visible);
   const discountedSubtotal = Math.max(baseTotals.subtotal - (appliedCoupon?.discountAmount ?? 0), 0);
+  const deliveryCharge = discountedSubtotal === 0 ? 0 : shippingAddress.city.trim().toLowerCase() === "dhaka" ? 60 : 120;
   const totals = {
     subtotal: baseTotals.subtotal,
     discount: appliedCoupon?.discountAmount ?? 0,
-    shipping: discountedSubtotal > 3000 || discountedSubtotal === 0 ? 0 : 120,
-    tax: Math.round(discountedSubtotal * 0.05),
-    total: discountedSubtotal + (discountedSubtotal > 3000 || discountedSubtotal === 0 ? 0 : 120) + Math.round(discountedSubtotal * 0.05)
+    shipping: deliveryCharge,
+    tax: 0,
+    total: discountedSubtotal + deliveryCharge
   };
   const formIsValid = useMemo(() => {
     return (
@@ -70,7 +71,7 @@ export function CheckoutClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((item) => ({ productId: item.product.id, productSlug: item.product.slug, quantity: item.quantity })),
+          items: items.map((item) => ({ productId: item.product.id, productSlug: item.product.slug, quantity: item.quantity, options: item.selectedOptions })),
           couponCode: appliedCoupon?.code,
           paymentMethod,
           shippingAddress
@@ -196,7 +197,7 @@ export function CheckoutClient() {
           {items.map((item) => (
             <div key={item.product.id} className="flex justify-between gap-4">
               <span>{item.product.name} x {item.quantity}</span>
-              <span>{formatBDT(item.product.price * item.quantity)}</span>
+              <span>{formatBDT(item.unitPrice * item.quantity)}</span>
             </div>
           ))}
           <div className="border-t pt-4">
@@ -214,7 +215,6 @@ export function CheckoutClient() {
           <div className="flex justify-between border-t pt-3"><span>Subtotal</span><span>{formatBDT(totals.subtotal)}</span></div>
           {totals.discount ? <div className="flex justify-between text-primary"><span>Discount</span><span>-{formatBDT(totals.discount)}</span></div> : null}
           <div className="flex justify-between border-t pt-3"><span>Delivery charge</span><span>{formatBDT(totals.shipping)}</span></div>
-          <div className="flex justify-between"><span>Tax</span><span>{formatBDT(totals.tax)}</span></div>
           <div className="flex justify-between border-t pt-3 text-base font-bold"><span>Total</span><span>{formatBDT(totals.total)}</span></div>
         </div>
         {error ? <p className="mt-4 rounded-md bg-destructive/10 p-3 text-sm font-semibold text-destructive">{error}</p> : null}

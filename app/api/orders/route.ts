@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         ...(productSlugs.length ? [{ slug: { in: productSlugs } }] : [])
       ]
     },
-    select: { id: true, slug: true, name: true, price: true, stock: true }
+    select: { id: true, slug: true, name: true, price: true, stock: true, options: true }
   });
   const productById = new Map(products.map((product) => [product.id, product]));
   const productBySlug = new Map(products.map((product) => [product.slug, product]));
@@ -75,16 +75,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `${insufficientStock.name} does not have enough stock for the requested quantity.` }, { status: 400 });
   }
 
-  const orderItems = parsed.data.items.map((item) => {
-    const product = resolveProduct(item)!;
+  function normalizeOptions(productOptions: unknown, selectedOptions: { name: string; value: string; priceDelta: number }[]) {
+    if (!selectedOptions.length) return [];
+    if (!Array.isArray(productOptions)) return [];
 
-    return {
-      productId: product.id,
-      name: product.name,
-      quantity: item.quantity,
-      price: Number(product.price)
-    };
-  });
+    return selectedOptions.map((selected) => {
+      const group = productOptions.find((item) => item && typeof item === "object" && !Array.isArray(item) && (item as Record<string, unknown>).name === selected.name) as Record<string, unknown> | undefined;
+      const values = Array.isArray(group?.values) ? group.values : [];
+      const value = values.find((item) => item && typeof item === "object" && !Array.isArray(item) && (item as Record<string, unknown>).label === selected.value) as Record<string, unknown> | undefined;
+
+      if (!group || !value) {
+        throw new Error("Invalid product option selected.");
+      }
+
+      return {
+        name: selected.name,
+        value: selected.value,
+        priceDelta: Number(value.priceDelta ?? 0) || 0
+      };
+    });
+  }
+
+  let orderItems: { productId: string; name: string; quantity: number; price: number; options: { name: string; value: string; priceDelta: number }[] }[];
+  try {
+    orderItems = parsed.data.items.map((item) => {
+      const product = resolveProduct(item)!;
+      const selectedOptions = normalizeOptions(product.options, item.options);
+      const optionDelta = selectedOptions.reduce((sum, option) => sum + option.priceDelta, 0);
+
+      return {
+        productId: product.id,
+        name: product.name,
+        quantity: item.quantity,
+        price: Number(product.price) + optionDelta,
+        options: selectedOptions
+      };
+    });
+  } catch {
+    return NextResponse.json({ error: "One or more selected product options are no longer available." }, { status: 400 });
+  }
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   let discount = 0;
   let couponCode: string | null = null;
@@ -115,8 +144,9 @@ export async function POST(request: Request) {
   }
 
   const discountedSubtotal = subtotal - discount;
-  const shipping = discountedSubtotal > 3000 ? 0 : 120;
-  const tax = Math.round(discountedSubtotal * 0.05);
+  const city = parsed.data.shippingAddress.city.trim().toLowerCase();
+  const shipping = discountedSubtotal === 0 ? 0 : city === "dhaka" ? 60 : 120;
+  const tax = 0;
   const number = orderNumber();
   const total = discountedSubtotal + shipping + tax;
   const order = await db.order.create({
@@ -136,7 +166,8 @@ export async function POST(request: Request) {
         create: orderItems.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          options: item.options
         }))
       }
     },
@@ -157,10 +188,19 @@ export async function POST(request: Request) {
     subtotal: Number(order.subtotal),
     discount,
     shipping: Number(order.shipping),
-    tax: Number(order.tax),
     total: Number(order.total),
     shippingAddress: parsed.data.shippingAddress,
-    items: order.items.map((item) => ({ name: item.product.name, quantity: item.quantity, price: Number(item.price) }))
+    items: order.items.map((item) => {
+      const options = Array.isArray(item.options)
+        ? item.options
+            .map((option) => option && typeof option === "object" && !Array.isArray(option) ? option as Record<string, unknown> : null)
+            .filter((option): option is Record<string, unknown> => Boolean(option))
+            .map((option) => typeof option.name === "string" && typeof option.value === "string" ? `${option.name}: ${option.value}` : "")
+            .filter(Boolean)
+            .join(", ")
+        : "";
+      return { name: options ? `${item.product.name} (${options})` : item.product.name, quantity: item.quantity, price: Number(item.price) };
+    })
   });
 
   return NextResponse.json({

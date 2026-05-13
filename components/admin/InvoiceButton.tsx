@@ -20,7 +20,6 @@ type InvoiceOrder = {
   subtotal: number;
   discount: number;
   deliveryCharge: number;
-  tax: number;
   total: number;
 };
 
@@ -119,7 +118,6 @@ export function InvoiceButton({ order }: { order: InvoiceOrder }) {
                 <div class="line"><span>Subtotal</span><strong>${formatBDT(order.subtotal)}</strong></div>
                 ${order.discount ? `<div class="line"><span>Discount</span><strong>-${formatBDT(order.discount)}</strong></div>` : ""}
                 <div class="line"><span>Delivery charge</span><strong>${formatBDT(order.deliveryCharge)}</strong></div>
-                <div class="line"><span>Tax</span><strong>${formatBDT(order.tax)}</strong></div>
                 <div class="line grand"><span>Total</span><span>${formatBDT(order.total)}</span></div>
               </div>
             </div>

@@ -134,6 +134,7 @@ model Product {
   stock        Int            @default(0)
   brand        String?
   specs        Json?
+  options      Json?
   rating       Float          @default(0)
   reviewCount  Int            @default(0)
   featured     Boolean        @default(false)
@@ -163,6 +164,7 @@ model Review {
   productId String
   rating    Int
   comment   String?
+  images    Json?
   createdAt DateTime @default(now())
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -227,6 +229,7 @@ model OrderItem {
   productId String
   quantity  Int
   price     Decimal @db.Decimal(12, 2)
+  options   Json?
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
 }

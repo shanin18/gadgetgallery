@@ -23,7 +23,7 @@
   --muted: 222 18% 18%;
   --muted-foreground: 214 12% 72%;
   --primary: 174 68% 42%;
-  --primary-foreground: 224 28% 8%;
+  --primary-foreground: 0 0% 100%;
   --accent: 38 92% 58%;
   --accent-foreground: 224 28% 8%;
 }
@@ -49,6 +49,12 @@ a {
   text-decoration: none;
 }
 
+button:not(:disabled),
+a[href],
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
 .container-page {
   width: min(1180px, calc(100% - 32px));
   margin-inline: auto;
@@ -69,45 +75,44 @@ a {
   outline-color: hsl(var(--primary));
 }
 
-@keyframes route-progress {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(300%);
-  }
+.g-loader {
+  position: relative;
+  display: grid;
+  height: 2.75rem;
+  width: 2.75rem;
+  place-items: center;
 }
 
-.g-loader-mark {
-  font-family: var(--font-jakarta), var(--font-inter), sans-serif;
-  font-size: clamp(3.25rem, 8vw, 4.25rem);
-  font-weight: 900;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1.35px hsl(var(--primary));
-  background-image: linear-gradient(hsl(var(--primary)), hsl(var(--primary)));
-  background-position: bottom;
-  background-repeat: no-repeat;
-  background-size: 100% 0%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: g-text-fill 1.35s ease-in-out infinite;
+.g-loader-svg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  height: 100%;
+  width: 100%;
+  overflow: visible;
 }
 
-@media (min-width: 768px) {
-  .g-loader-mark {
-    -webkit-text-stroke-width: 1.6px;
-  }
+.g-loader-track {
+  fill: none;
+  stroke: hsl(var(--primary) / 0.16);
+  stroke-width: 8;
 }
 
-@keyframes g-text-fill {
-  0%,
-  100% {
-    background-size: 100% 0%;
-  }
+.g-loader-progress {
+  fill: none;
+  stroke: hsl(var(--primary));
+  stroke-width: 8;
+  stroke-dashoffset: var(--loader-offset);
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: stroke-dashoffset 160ms ease-out;
+}
 
-  50% {
-    background-size: 100% 100%;
+@media (min-width: 640px) {
+  .g-loader {
+    height: 3.125rem;
+    width: 3.125rem;
   }
 }

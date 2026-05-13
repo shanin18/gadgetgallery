@@ -18,7 +18,12 @@ export const metadata: Metadata = {
     template: "%s | GadgetGallery"
   },
   description: "Shop earphones, coolers, headphones, memory cards and useful gadgets in BDT.",
-  metadataBase: new URL(process.env.NEXTAUTH_URL ?? "http://localhost:3000")
+  metadataBase: new URL(process.env.NEXTAUTH_URL ?? "http://localhost:3000"),
+  icons: {
+    icon: "/favicon.jpg",
+    shortcut: "/favicon.jpg",
+    apple: "/favicon.jpg"
+  }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

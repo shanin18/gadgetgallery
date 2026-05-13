@@ -51,6 +51,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
   });
 
+  if (parsed.data.options) {
+    await db.$executeRaw`
+      UPDATE "Product"
+      SET "options" = ${JSON.stringify(parsed.data.options)}::jsonb
+      WHERE "id" = ${product.id}
+    `;
+  }
+
   return NextResponse.json({ product });
 }
 

@@ -26,7 +26,6 @@ type OrderDetails = {
   subtotal: number;
   discount: number;
   deliveryCharge: number;
-  tax: number;
   total: number;
 };
 
@@ -97,7 +96,6 @@ export function OrderDetailsButton({ order }: { order: OrderDetails }) {
                   <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><strong>{formatBDT(order.subtotal)}</strong></div>
                   {order.discount ? <div className="flex justify-between text-primary"><span>Discount</span><strong>-{formatBDT(order.discount)}</strong></div> : null}
                   <div className="flex justify-between"><span className="text-muted-foreground">Delivery charge</span><strong>{formatBDT(order.deliveryCharge)}</strong></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Tax</span><strong>{formatBDT(order.tax)}</strong></div>
                   <div className="flex justify-between border-t pt-3 font-display text-lg font-extrabold"><span>Total</span><span>{formatBDT(order.total)}</span></div>
                 </div>
               </section>

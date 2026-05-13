@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
+import { PasswordInput } from "@/components/auth/PasswordInput";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
 type RegisterResponse = {
   email?: string;
@@ -102,10 +105,14 @@ export function RegisterForm() {
         </label>
         <label className="block text-sm font-semibold">
           Password
-          <input name="password" type="password" required minLength={8} className="mt-2 h-10 w-full rounded-md border bg-background px-3 outline-none focus:border-primary" />
+          <PasswordInput required minLength={8} autoComplete="new-password" />
         </label>
       </div>
       <Button className="mt-6 w-full" disabled={isPending}>{isPending ? "Creating account..." : "Register"}</Button>
+      <SocialLoginButtons />
+      <p className="mt-5 text-center text-sm font-semibold text-muted-foreground">
+        Already have an account? <Link href="/login" className="text-primary hover:underline">Login</Link>
+      </p>
     </form>
   );
 }

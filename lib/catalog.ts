@@ -1,3 +1,19 @@
+export type ProductOptionValue = {
+  label: string;
+  priceDelta: number;
+};
+
+export type ProductOptionGroup = {
+  name: string;
+  values: ProductOptionValue[];
+};
+
+export type SelectedProductOption = {
+  name: string;
+  value: string;
+  priceDelta: number;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -15,6 +31,7 @@ export type Product = {
   image: string;
   images: string[];
   specs: Record<string, string>;
+  options: ProductOptionGroup[];
 };
 
 export const categories = [
@@ -45,7 +62,8 @@ export const products: Product[] = [
       "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1608156639585-b3a032ef9689?auto=format&fit=crop&w=900&q=80"
     ],
-    specs: { Battery: "28 hours", Connectivity: "Bluetooth 5.3", Warranty: "6 months" }
+    specs: { Battery: "28 hours", Connectivity: "Bluetooth 5.3", Warranty: "6 months" },
+    options: []
   },
   {
     id: "p2",
@@ -63,7 +81,8 @@ export const products: Product[] = [
     featured: true,
     image: "https://images.unsplash.com/photo-1593640495253-23196b27a87f?auto=format&fit=crop&w=900&q=80",
     images: ["https://images.unsplash.com/photo-1593640495253-23196b27a87f?auto=format&fit=crop&w=900&q=80"],
-    specs: { Fans: "2 x 120mm", Noise: "Below 24dB", Size: "Up to 17 inch" }
+    specs: { Fans: "2 x 120mm", Noise: "Below 24dB", Size: "Up to 17 inch" },
+    options: []
   },
   {
     id: "p3",
@@ -81,7 +100,8 @@ export const products: Product[] = [
     featured: true,
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80"],
-    specs: { Battery: "40 hours", Driver: "40mm", Charging: "USB-C" }
+    specs: { Battery: "40 hours", Driver: "40mm", Charging: "USB-C" },
+    options: []
   },
   {
     id: "p4",
@@ -98,7 +118,8 @@ export const products: Product[] = [
     featured: false,
     image: "https://images.unsplash.com/photo-1601737487795-dab272f52420?auto=format&fit=crop&w=900&q=80",
     images: ["https://images.unsplash.com/photo-1601737487795-dab272f52420?auto=format&fit=crop&w=900&q=80"],
-    specs: { Capacity: "128GB", Speed: "UHS-I U3", Warranty: "5 years" }
+    specs: { Capacity: "128GB", Speed: "UHS-I U3", Warranty: "5 years" },
+    options: []
   },
   {
     id: "p5",
@@ -116,7 +137,8 @@ export const products: Product[] = [
     featured: false,
     image: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=900&q=80",
     images: ["https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=900&q=80"],
-    specs: { Output: "30W PD", Ports: "USB-C", Plug: "EU two-pin" }
+    specs: { Output: "30W PD", Ports: "USB-C", Plug: "EU two-pin" },
+    options: []
   },
   {
     id: "p6",
@@ -133,7 +155,8 @@ export const products: Product[] = [
     featured: false,
     image: "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?auto=format&fit=crop&w=900&q=80",
     images: ["https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?auto=format&fit=crop&w=900&q=80"],
-    specs: { Length: "1.5m", Charging: "60W", Material: "Braided nylon" }
+    specs: { Length: "1.5m", Charging: "60W", Material: "Braided nylon" },
+    options: []
   }
 ];
 

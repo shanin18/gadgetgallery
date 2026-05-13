@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { Product } from "@/lib/catalog";
+import type { Product, ProductOptionGroup } from "@/lib/catalog";
 
 type ProductWithCatalogFields = {
   id: string;
@@ -14,6 +14,7 @@ type ProductWithCatalogFields = {
   reviewCount: number;
   featured: boolean;
   specs: Prisma.JsonValue | null;
+  options?: Prisma.JsonValue | null;
   category: {
     name: string;
     slug: string;
@@ -26,6 +27,31 @@ type ProductWithCatalogFields = {
 function toNumber(value: Prisma.Decimal | number | null | undefined) {
   if (value == null) return undefined;
   return Number(value);
+}
+
+function toOptions(value: Prisma.JsonValue | null | undefined): ProductOptionGroup[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((group) => {
+      if (!group || typeof group !== "object" || Array.isArray(group)) return null;
+      const record = group as Record<string, unknown>;
+      const name = typeof record.name === "string" ? record.name.trim() : "";
+      const values = Array.isArray(record.values)
+        ? record.values
+            .map((item) => {
+              if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+              const valueRecord = item as Record<string, unknown>;
+              const label = typeof valueRecord.label === "string" ? valueRecord.label.trim() : "";
+              const priceDelta = Number(valueRecord.priceDelta ?? 0);
+              return label ? { label, priceDelta: Number.isFinite(priceDelta) ? priceDelta : 0 } : null;
+            })
+            .filter((item): item is { label: string; priceDelta: number } => Boolean(item))
+        : [];
+
+      return name && values.length ? { name, values } : null;
+    })
+    .filter((group): group is ProductOptionGroup => Boolean(group));
 }
 
 function toSpecs(value: Prisma.JsonValue | null): Record<string, string> {
@@ -58,6 +84,7 @@ export function mapDbProduct(product: ProductWithCatalogFields): Product {
     featured: product.featured,
     image: primaryImage,
     images: imageUrls,
-    specs: toSpecs(product.specs)
+    specs: toSpecs(product.specs),
+    options: toOptions(product.options)
   };
 }

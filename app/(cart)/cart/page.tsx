@@ -20,22 +20,23 @@ export default function CartPage() {
         <div className="mt-6 space-y-4">
           {items.length === 0 ? <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">Your cart is empty.</p> : null}
           {items.map((item) => (
-            <div key={item.product.id} className="grid gap-4 rounded-lg border bg-card p-4 sm:grid-cols-[112px_1fr_auto]">
+            <div key={item.id} className="grid gap-4 rounded-lg border bg-card p-4 sm:grid-cols-[112px_1fr_auto]">
               <div className="relative aspect-square overflow-hidden rounded-md bg-muted">
                 <Image src={item.product.image} alt={item.product.name} fill sizes="112px" className="object-cover" />
               </div>
               <div>
                 <h2 className="font-display text-lg font-bold">{item.product.name}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">{item.product.category}</p>
-                <p className="mt-3 font-bold">{formatBDT(item.product.price)}</p>
+                {item.selectedOptions.length ? <p className="mt-2 text-sm font-semibold text-muted-foreground">{item.selectedOptions.map((option) => `${option.name}: ${option.value}`).join(", ")}</p> : null}
+                <p className="mt-3 font-bold">{formatBDT(item.unitPrice)}</p>
               </div>
               <div className="flex items-center gap-3 sm:flex-col sm:items-end">
                 <div className="inline-flex items-center rounded-md border">
-                  <button className="p-2" onClick={() => setQuantity(item.product.id, item.quantity - 1)}><Minus size={14} /></button>
+                  <button className="p-2" onClick={() => setQuantity(item.id, item.quantity - 1)}><Minus size={14} /></button>
                   <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
-                  <button className="p-2" onClick={() => setQuantity(item.product.id, item.quantity + 1)}><Plus size={14} /></button>
+                  <button className="p-2" onClick={() => setQuantity(item.id, item.quantity + 1)}><Plus size={14} /></button>
                 </div>
-                <button className="inline-flex items-center gap-2 text-sm font-semibold text-destructive" onClick={() => removeItem(item.product.id)}><Trash2 size={15} /> Remove</button>
+                <button className="inline-flex items-center gap-2 text-sm font-semibold text-destructive" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remove</button>
               </div>
             </div>
           ))}
@@ -50,7 +51,6 @@ export default function CartPage() {
         <div className="mt-5 space-y-3 text-sm">
           <div className="flex justify-between"><span>Subtotal</span><span>{formatBDT(totals.subtotal)}</span></div>
           <div className="flex justify-between"><span>Shipping</span><span>{formatBDT(totals.shipping)}</span></div>
-          <div className="flex justify-between"><span>Tax</span><span>{formatBDT(totals.tax)}</span></div>
           <div className="flex justify-between border-t pt-3 text-base font-bold"><span>Total</span><span>{formatBDT(totals.total)}</span></div>
         </div>
         {isAdmin ? (

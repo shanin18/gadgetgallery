@@ -32,7 +32,8 @@ function toCatalogProduct(product: WishlistProduct): Product {
     featured: product.featured,
     image,
     images: product.images.map((item) => item.url),
-    specs: product.specs && typeof product.specs === "object" && !Array.isArray(product.specs) ? (product.specs as Record<string, string>) : {}
+    specs: product.specs && typeof product.specs === "object" && !Array.isArray(product.specs) ? (product.specs as Record<string, string>) : {},
+    options: []
   };
 }
 

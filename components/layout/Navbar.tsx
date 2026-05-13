@@ -163,8 +163,8 @@ function MobileHeader({ user, isAdmin }: { user?: AuthUser; isAdmin: boolean }) 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b bg-[#eef6ff]/92 backdrop-blur-xl md:hidden">
       <div className="container-page flex h-16 items-center gap-3">
-        <Link href="/" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary font-display text-lg font-extrabold text-primary-foreground shadow-sm" aria-label="GadgetGallery home">
-          G
+        <Link href="/" className="relative h-11 w-11 shrink-0 overflow-hidden" aria-label="GadgetGallery home">
+          <Image src="/brand/gadget-gallery-logo.png" alt="GadgetGallery" fill sizes="44px" className="object-contain" priority />
         </Link>
         <form action="/shop" className="flex h-10 min-w-0 flex-1 items-center rounded-full bg-card px-3 shadow-sm">
           <Search size={16} className="shrink-0 text-muted-foreground" />
@@ -176,8 +176,8 @@ function MobileHeader({ user, isAdmin }: { user?: AuthUser; isAdmin: boolean }) 
               <UserAvatar user={user} size="md" />
             </button>
           ) : (
-            <Link href="/login" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card shadow-sm" aria-label="Login">
-              <UserRound size={19} />
+            <Link href="/login" className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-primary px-4 text-sm font-extrabold text-primary-foreground shadow-sm" aria-label="Login">
+              Login
             </Link>
           )}
           {user ? <MobileAvatarMenu user={user} isAdmin={isAdmin} open={open} onClose={() => setOpen(false)} /> : null}
@@ -461,4 +461,3 @@ function AccountLink({ href, icon: Icon, label, onNavigate }: { href: string; ic
     </Link>
   );
 }
-

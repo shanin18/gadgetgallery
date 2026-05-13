@@ -33,6 +33,18 @@ function shippingPhone(address: unknown) {
   return typeof phone === "string" ? phone : "";
 }
 
+function optionSummary(options: unknown) {
+  if (!Array.isArray(options)) return "";
+  return options
+    .map((option) => {
+      if (!option || typeof option !== "object" || Array.isArray(option)) return "";
+      const record = option as Record<string, unknown>;
+      return typeof record.name === "string" && typeof record.value === "string" ? `${record.name}: ${record.value}` : "";
+    })
+    .filter(Boolean)
+    .join(", ");
+}
+
 const confirmationStatuses = ["PENDING", "CONFIRMED", "CANCELLED"] as const;
 const deliveryStatuses = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"] as const;
 const orderInclude = {
@@ -151,7 +163,10 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                     confirmationStatus: order.confirmationStatus,
                     deliveryStatus: order.status,
                     shippingAddress: addressLines,
-                    items: order.items.map((item) => ({ name: item.product.name, quantity: item.quantity, price: Number(item.price) })),
+                    items: order.items.map((item) => {
+                      const summary = optionSummary(item.options);
+                      return { name: summary ? `${item.product.name} (${summary})` : item.product.name, quantity: item.quantity, price: Number(item.price) };
+                    }),
                     subtotal: Number(order.subtotal),
                     discount: Number(order.discount),
                     deliveryCharge: Number(order.shipping),
@@ -204,7 +219,10 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                 confirmationStatus: order.confirmationStatus,
                 deliveryStatus: order.status,
                 shippingAddress: addressLines,
-                items: order.items.map((item) => ({ name: item.product.name, quantity: item.quantity, price: Number(item.price) })),
+                items: order.items.map((item) => {
+                  const summary = optionSummary(item.options);
+                  return { name: summary ? `${item.product.name} (${summary})` : item.product.name, quantity: item.quantity, price: Number(item.price) };
+                }),
                 subtotal: Number(order.subtotal),
                 discount: Number(order.discount),
                 deliveryCharge: Number(order.shipping),

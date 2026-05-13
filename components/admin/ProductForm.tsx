@@ -22,6 +22,7 @@ type ProductFormValue = {
   stock: string;
   featured: boolean;
   specs: { key: string; value: string }[];
+  options: { name: string; values: { label: string; priceDelta: string }[] }[];
   imageUrls: string[];
   description: string;
 };
@@ -36,6 +37,7 @@ const emptyProduct: ProductFormValue = {
   stock: "0",
   featured: false,
   specs: [],
+  options: [],
   imageUrls: [],
   description: ""
 };
@@ -65,8 +67,9 @@ export function ProductForm({ title, categories, product }: { title: string; cat
   const inputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(product ?? emptyProduct);
   const [slugTouched, setSlugTouched] = useState(Boolean(product?.slug));
-  const [dealEnabled, setDealEnabled] = useState(Boolean(product?.comparePrice));
+  const [dealEnabled, setDealEnabled] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -91,6 +94,42 @@ export function ProductForm({ title, categories, product }: { title: string; cat
 
   function removeSpec(index: number) {
     setForm((current) => ({ ...current, specs: current.specs.filter((_, specIndex) => specIndex !== index) }));
+  }
+
+  function addOptionGroup() {
+    setForm((current) => ({ ...current, options: [...current.options, { name: "", values: [{ label: "", priceDelta: "0" }] }] }));
+  }
+
+  function updateOptionGroup(index: number, name: string) {
+    setForm((current) => ({ ...current, options: current.options.map((group, groupIndex) => groupIndex === index ? { ...group, name } : group) }));
+  }
+
+  function removeOptionGroup(index: number) {
+    setForm((current) => ({ ...current, options: current.options.filter((_, groupIndex) => groupIndex !== index) }));
+  }
+
+  function addOptionValue(groupIndex: number) {
+    setForm((current) => ({
+      ...current,
+      options: current.options.map((group, index) => index === groupIndex ? { ...group, values: [...group.values, { label: "", priceDelta: "0" }] } : group)
+    }));
+  }
+
+  function updateOptionValue(groupIndex: number, valueIndex: number, field: "label" | "priceDelta", value: string) {
+    setForm((current) => ({
+      ...current,
+      options: current.options.map((group, index) => index === groupIndex ? {
+        ...group,
+        values: group.values.map((optionValue, optionIndex) => optionIndex === valueIndex ? { ...optionValue, [field]: value } : optionValue)
+      } : group)
+    }));
+  }
+
+  function removeOptionValue(groupIndex: number, valueIndex: number) {
+    setForm((current) => ({
+      ...current,
+      options: current.options.map((group, index) => index === groupIndex ? { ...group, values: group.values.filter((_, optionIndex) => optionIndex !== valueIndex) } : group)
+    }));
   }
 
   function updateName(value: string) {
@@ -161,6 +200,14 @@ export function ProductForm({ title, categories, product }: { title: string; cat
         stock: form.stock,
         featured: form.featured,
         specs: Object.fromEntries(form.specs.filter((spec) => spec.key.trim() && spec.value.trim()).map((spec) => [spec.key.trim(), spec.value.trim()])),
+        options: form.options
+          .map((group) => ({
+            name: group.name.trim(),
+            values: group.values
+              .filter((value) => value.label.trim())
+              .map((value) => ({ label: value.label.trim(), priceDelta: Number(value.priceDelta) || 0 }))
+          }))
+          .filter((group) => group.name && group.values.length),
         description: form.description,
         images: form.imageUrls
       };
@@ -172,13 +219,18 @@ export function ProductForm({ title, categories, product }: { title: string; cat
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setMessage(data.error ? "Could not save product. Check the form values." : "Could not save product.");
+        const text = data.error ? "Could not save product. Check the form values." : "Could not save product.";
+        setMessage(text);
+        setToast({ type: "error", text });
         return;
       }
 
-      setMessage("Product saved.");
-      router.push("/admin/products");
-      router.refresh();
+      setMessage(null);
+      setToast({ type: "success", text: product?.id ? "Product updated successfully." : "Product added successfully." });
+      window.setTimeout(() => {
+        router.push("/admin/products");
+        router.refresh();
+      }, 850);
     });
   }
 
@@ -230,8 +282,7 @@ export function ProductForm({ title, categories, product }: { title: string; cat
             min={0}
             type="number"
             step="0.01"
-            disabled={!dealEnabled}
-            className="mt-2 h-10 w-full rounded-md border bg-background px-3 outline-none focus:border-primary disabled:bg-muted disabled:text-muted-foreground"
+            className="mt-2 h-10 w-full rounded-md border bg-background px-3 outline-none focus:border-primary"
           />
         </div>
         <label className="block text-sm font-semibold">
@@ -251,7 +302,6 @@ export function ProductForm({ title, categories, product }: { title: string; cat
                 checked={dealEnabled}
                 onChange={(event) => {
                   setDealEnabled(event.target.checked);
-                  if (!event.target.checked) updateField("comparePrice", "");
                 }}
                 className="h-4 w-4 accent-primary"
               />
@@ -340,14 +390,61 @@ export function ProductForm({ title, categories, product }: { title: string; cat
             {!form.specs.length ? <p className="rounded-md bg-muted p-3 text-sm font-semibold text-muted-foreground">No specifications added.</p> : null}
           </div>
         </div>
+        <div className="rounded-xl bg-card p-3 sm:col-span-2 sm:p-4 md:bg-background">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-extrabold">Customer options</p>
+              <p className="mt-1 text-xs font-semibold text-muted-foreground">Use for earphone ports, microphone choices, colors, or any option that can change price.</p>
+            </div>
+            <button type="button" onClick={addOptionGroup} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold hover:bg-muted sm:w-auto">
+              <Plus size={16} />
+              Add option
+            </button>
+          </div>
+          <div className="mt-4 grid gap-4">
+            {form.options.map((group, groupIndex) => (
+              <div key={groupIndex} className="rounded-lg border bg-card p-3">
+                <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                  <input value={group.name} onChange={(event) => updateOptionGroup(groupIndex, event.target.value)} placeholder="Option name, e.g. Port type" className="h-10 rounded-md border bg-background px-3 text-sm font-semibold outline-none focus:border-primary" />
+                  <button type="button" onClick={() => removeOptionGroup(groupIndex)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold text-destructive hover:bg-destructive/10">
+                    <X size={16} />
+                    Remove
+                  </button>
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {group.values.map((value, valueIndex) => (
+                    <div key={valueIndex} className="grid gap-2 sm:grid-cols-[1fr_140px_auto]">
+                      <input value={value.label} onChange={(event) => updateOptionValue(groupIndex, valueIndex, "label", event.target.value)} placeholder="Value, e.g. Type-C" className="h-10 rounded-md border bg-background px-3 text-sm font-semibold outline-none focus:border-primary" />
+                      <input value={value.priceDelta} onChange={(event) => updateOptionValue(groupIndex, valueIndex, "priceDelta", event.target.value)} type="number" step="0.01" placeholder="+/- price" className="h-10 rounded-md border bg-background px-3 text-sm font-semibold outline-none focus:border-primary" />
+                      <button type="button" onClick={() => removeOptionValue(groupIndex, valueIndex)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold text-destructive hover:bg-destructive/10">
+                        <Trash2 size={15} />
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => addOptionValue(groupIndex)} className="inline-flex h-9 w-fit items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold hover:bg-muted">
+                    <Plus size={15} />
+                    Add value
+                  </button>
+                </div>
+              </div>
+            ))}
+            {!form.options.length ? <p className="rounded-md bg-muted p-3 text-sm font-semibold text-muted-foreground">No customer options added.</p> : null}
+          </div>
+        </div>
       </div>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {message ? <p className="text-sm font-semibold text-muted-foreground">{message}</p> : <span />}
+        {message ? <p className="text-sm font-semibold text-destructive">{message}</p> : <span />}
         <Button className="w-full min-w-36 sm:w-auto" disabled={isPending}>
           <Save size={17} />
           {isPending ? "Saving..." : "Save product"}
         </Button>
       </div>
+      {toast ? (
+        <div className={`fixed right-4 top-20 z-[120] w-[min(360px,calc(100vw-32px))] rounded-lg border bg-card p-4 text-sm font-extrabold shadow-soft transition ${toast.type === "success" ? "border-primary/30 text-primary" : "border-destructive/30 text-destructive"}`}>
+          {toast.text}
+        </div>
+      ) : null}
     </form>
   );
 }

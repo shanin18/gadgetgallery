@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Star } from "lucide-react";
-import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ProductGallery } from "@/components/shop/ProductGallery";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { WishlistButton } from "@/components/shop/WishlistButton";
+import { ProductPurchaseControls } from "@/components/shop/ProductPurchaseControls";
+import { ProductReviews } from "@/components/shop/ProductReviews";
 import { db } from "@/lib/db";
 import { mapDbProduct } from "@/lib/product-mapper";
 import { formatBDT } from "@/lib/utils";
@@ -51,6 +52,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       images: { orderBy: [{ isPrimary: "desc" }, { id: "asc" }] }
     }
   });
+  const reviews = await db.$queryRaw<{
+    id: string;
+    rating: number;
+    comment: string | null;
+    images: unknown;
+    createdAt: Date;
+    userName: string | null;
+    userImage: string | null;
+  }[]>`
+    SELECT r."id", r."rating", r."comment", r."images", r."createdAt", u."name" AS "userName", u."image" AS "userImage"
+    FROM "Review" r
+    INNER JOIN "User" u ON u."id" = r."userId"
+    WHERE r."productId" = ${productRecord.id}
+    ORDER BY r."createdAt" DESC
+  `;
   const related = relatedRecords.map(mapDbProduct);
   const jsonLd = {
     "@context": "https://schema.org",
@@ -69,7 +85,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
         <ProductGallery name={product.name} images={product.images} />
         <section>
-          <p className="text-xs font-bold uppercase text-primary sm:text-sm">{product.category}</p>
+          <p className="text-xs font-bold uppercase text-primary sm:text-sm">{product.brand || "GadgetGallery"}</p>
           <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight sm:text-4xl">{product.name}</h1>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs sm:mt-4 sm:gap-3 sm:text-sm">
             <span className="inline-flex items-center gap-1 font-semibold"><Star size={16} className="fill-accent text-accent" /> {product.rating}</span>
@@ -81,18 +97,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {product.comparePrice ? <p className="text-sm text-muted-foreground line-through sm:text-lg">{formatBDT(product.comparePrice)}</p> : null}
           </div>
           <p className="mt-4 text-sm leading-6 text-muted-foreground sm:mt-5 sm:text-base sm:leading-7">{product.description}</p>
-          <div className="mt-6 flex gap-3 sm:mt-7">
-            <AddToCartButton product={product} className="min-w-40 sm:min-w-44" />
+          <ProductPurchaseControls product={product} />
+          <div className="mt-3 flex gap-3">
             <WishlistButton productSlug={product.slug} />
           </div>
           {Object.keys(product.specs).length ? (
-            <div className="mt-8 rounded-lg border bg-card p-5">
-              <h2 className="font-display text-xl font-bold">Specifications</h2>
-              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-7 sm:mt-8 sm:rounded-lg sm:border sm:bg-card sm:p-5">
+              <h2 className="font-display text-lg font-bold sm:text-xl">Specifications</h2>
+              <dl className="mt-3 divide-y sm:mt-4 sm:grid sm:gap-3 sm:divide-y-0 sm:grid-cols-2">
                 {Object.entries(product.specs).map(([key, value]) => (
-                  <div key={key} className="rounded-md bg-muted p-3">
-                    <dt className="text-xs font-bold uppercase text-muted-foreground">{key}</dt>
-                    <dd className="mt-1 font-semibold">{value}</dd>
+                  <div key={key} className="grid grid-cols-[0.8fr_1fr] gap-3 py-2.5 sm:block sm:rounded-md sm:bg-muted sm:p-3">
+                    <dt className="text-[11px] font-bold uppercase text-muted-foreground sm:text-xs">{key}</dt>
+                    <dd className="text-right text-sm font-semibold leading-5 sm:mt-1 sm:text-left sm:text-base">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -100,6 +116,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           ) : null}
         </section>
       </div>
+      <ProductReviews
+        productId={product.id}
+        initialReviews={reviews.map((review) => ({
+          id: review.id,
+          rating: review.rating,
+          comment: review.comment,
+          images: Array.isArray(review.images) ? review.images.filter((image): image is string => typeof image === "string") : [],
+          createdAt: review.createdAt.toISOString(),
+          user: {
+            name: review.userName,
+            image: review.userImage
+          }
+        }))}
+      />
       <section className="mt-14">
         {related.length ? (
           <>

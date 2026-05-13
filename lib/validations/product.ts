@@ -11,5 +11,12 @@ export const productSchema = z.object({
   brand: z.string().optional(),
   featured: z.coerce.boolean().default(false),
   specs: z.record(z.string(), z.string()).default({}),
+  options: z.array(z.object({
+    name: z.string().trim().min(1),
+    values: z.array(z.object({
+      label: z.string().trim().min(1),
+      priceDelta: z.coerce.number().default(0)
+    })).min(1)
+  })).default([]),
   images: z.array(z.string().url()).default([])
 });
