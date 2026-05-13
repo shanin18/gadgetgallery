@@ -12,10 +12,11 @@ import { useCartStore } from "@/store/cart-store";
 
 export function HomeProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { slugs, setWishlisted } = useWishlist();
   const [isPending, startTransition] = useTransition();
   const wishlisted = slugs.has(product.slug);
+  const sessionLoading = status === "loading";
   const isAdmin = session?.user?.role === "ADMIN";
   const discount = product.comparePrice ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100) : 0;
   const inStock = product.stock > 0;
@@ -85,12 +86,12 @@ export function HomeProductCard({ product }: { product: Product }) {
         <div className="mt-3 flex gap-2">
           <button
             type="button"
-            disabled={!inStock || isAdmin}
+            disabled={!inStock || sessionLoading || isAdmin}
             onClick={() => addItem(product)}
             className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-2 text-xs font-extrabold text-primary-foreground transition hover:brightness-95 disabled:bg-muted disabled:text-muted-foreground sm:h-9 sm:text-sm"
           >
             <ShoppingCart size={15} />
-            <span className="sm:inline">{isAdmin ? "Admin" : "Add"}</span>
+            <span className="sm:inline">{sessionLoading ? "..." : isAdmin ? "Admin" : "Add"}</span>
           </button>
           <Link href={`/product/${product.slug}`} className="hidden h-9 items-center justify-center rounded-md border px-3 text-sm font-extrabold transition hover:bg-muted sm:inline-flex">
             View

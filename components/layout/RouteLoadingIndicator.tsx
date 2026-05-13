@@ -34,6 +34,17 @@ export function RouteLoadingIndicator() {
     return () => window.removeEventListener("click", handleClick, true);
   }, [startTransition]);
 
+  useEffect(() => {
+    if (!targetUrl) return;
+    if (targetUrl === currentUrl) {
+      setTargetUrl(null);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setTargetUrl(null), 8000);
+    return () => window.clearTimeout(timeout);
+  }, [currentUrl, targetUrl]);
+
   if (!targetUrl || targetUrl === currentUrl) return null;
 
   return <LoadingOverlay />;

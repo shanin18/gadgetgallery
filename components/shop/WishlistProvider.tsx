@@ -21,6 +21,8 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     let active = true;
 
     async function loadWishlist() {
+      if (status === "loading") return;
+
       if (status !== "authenticated") {
         setSlugs(new Set());
         return;

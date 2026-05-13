@@ -9,7 +9,8 @@ import { cartTotals, useCartStore } from "@/store/cart-store";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity } = useCartStore();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const sessionLoading = status === "loading";
   const isAdmin = session?.user?.role === "ADMIN";
   const totals = cartTotals(items);
 
@@ -53,7 +54,9 @@ export default function CartPage() {
           <div className="flex justify-between"><span>Shipping</span><span>{formatBDT(totals.shipping)}</span></div>
           <div className="flex justify-between border-t pt-3 text-base font-bold"><span>Total</span><span>{formatBDT(totals.total)}</span></div>
         </div>
-        {isAdmin ? (
+        {sessionLoading ? (
+          <p className="mt-6 rounded-md bg-muted p-3 text-sm font-semibold text-muted-foreground">Loading account...</p>
+        ) : isAdmin ? (
           <p className="mt-6 rounded-md bg-muted p-3 text-sm font-semibold text-muted-foreground">Admin accounts cannot place customer orders.</p>
         ) : (
           <LinkButton href="/checkout" className="mt-6 w-full">Checkout</LinkButton>

@@ -10,7 +10,8 @@ import { cartTotals, useCartStore } from "@/store/cart-store";
 
 export function CartDrawer() {
   const { items, open, toggle, removeItem, setQuantity } = useCartStore();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const sessionLoading = status === "loading";
   const isAdmin = session?.user?.role === "ADMIN";
   const totals = cartTotals(items);
 
@@ -55,7 +56,11 @@ export function CartDrawer() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Link href="/cart" onClick={() => toggle(false)} className="inline-flex h-10 items-center justify-center rounded-md border text-sm font-semibold">View cart</Link>
-              {isAdmin ? (
+              {sessionLoading ? (
+                <span className="inline-flex h-10 items-center justify-center rounded-md bg-muted px-4 text-sm font-semibold text-muted-foreground">
+                  Loading
+                </span>
+              ) : isAdmin ? (
                 <Link href="/admin" onClick={() => toggle(false)} className="inline-flex h-10 items-center justify-center rounded-md bg-muted px-4 text-sm font-semibold text-muted-foreground">
                   Admin only
                 </Link>

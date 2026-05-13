@@ -6,7 +6,6 @@ import { BarChart3, Bell, Boxes, Heart, Home, LayoutDashboard, Loader2, LogOut, 
 import { signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { LoadingOverlay } from "@/components/layout/LoadingOverlay";
 import { useCartStore } from "@/store/cart-store";
 
 const nav = [
@@ -35,7 +34,6 @@ type AuthUser = {
 
 export function Navbar() {
   const [accountOpen, setAccountOpen] = useState(false);
-  const [navigating, setNavigating] = useState(false);
   const { data: session, status } = useSession();
   const sessionLoaded = status !== "loading";
   const accountRef = useRef<HTMLDivElement>(null);
@@ -48,9 +46,6 @@ export function Navbar() {
 
   function startNavigation(href: string) {
     setAccountOpen(false);
-    if (href !== pathname) {
-      setNavigating(true);
-    }
   }
 
   // Close account dropdown when clicking outside
@@ -64,16 +59,8 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, []);
 
-  // Reset navigating flag after route change
-  useEffect(() => {
-    const timeout = window.setTimeout(() => setNavigating(false), 0);
-    return () => window.clearTimeout(timeout);
-  }, [pathname]);
-
-
   return (
     <>
-      {navigating ? <NavigationOverlay /> : null}
       <header className="fixed inset-x-0 top-0 z-50 hidden border-b bg-background/86 backdrop-blur-xl md:block">
         <div className="container-page relative flex h-16 items-center gap-4">
           <Link href="/" onClick={() => startNavigation("/")} className="font-display text-xl font-extrabold">
@@ -137,13 +124,13 @@ export function Navbar() {
           ) : null}
         </div>
       </header>
-      <MobileHeader user={user} isAdmin={isAdmin} />
+      <MobileHeader user={user} isAdmin={isAdmin} sessionLoaded={sessionLoaded} />
       <MobileBottomNav count={count} onCartOpen={() => toggleCart(true)} isAdmin={isAdmin} />
     </>
   );
 }
 
-function MobileHeader({ user, isAdmin }: { user?: AuthUser; isAdmin: boolean }) {
+function MobileHeader({ user, isAdmin, sessionLoaded }: { user?: AuthUser; isAdmin: boolean; sessionLoaded: boolean }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -171,7 +158,9 @@ function MobileHeader({ user, isAdmin }: { user?: AuthUser; isAdmin: boolean }) 
           <input name="q" placeholder="Search" className="h-full min-w-0 flex-1 bg-transparent px-2 text-sm outline-none" />
         </form>
         <div className="relative" ref={menuRef}>
-          {user ? (
+          {!sessionLoaded ? (
+            <div className="h-10 w-16 shrink-0 rounded-full bg-muted" aria-hidden="true" />
+          ) : user ? (
             <button type="button" onClick={() => setOpen((value) => !value)} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-card shadow-sm" aria-label="Open account menu" aria-expanded={open}>
               <UserAvatar user={user} size="md" />
             </button>
@@ -397,10 +386,6 @@ function MobileBottomNav({ count, onCartOpen, isAdmin }: { count: number; onCart
       ) : null}
     </>
   );
-}
-
-function NavigationOverlay() {
-  return <LoadingOverlay />;
 }
 
 function AccountMenu({ user, onNavigate }: { user: AuthUser; onNavigate: (href: string) => void }) {

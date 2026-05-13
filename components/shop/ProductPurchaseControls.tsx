@@ -10,8 +10,9 @@ import { AddToCartButton } from "@/components/shop/AddToCartButton";
 
 export function ProductPurchaseControls({ product }: { product: Product }) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const addItem = useCartStore((state) => state.addItem);
+  const sessionLoading = status === "loading";
   const isAdmin = session?.user?.role === "ADMIN";
   const [selected, setSelected] = useState<Record<string, string>>(() =>
     Object.fromEntries(product.options.map((group) => [group.name, group.values[0]?.label ?? ""]))
@@ -25,7 +26,7 @@ export function ProductPurchaseControls({ product }: { product: Product }) {
   const displayPrice = product.price + selectedOptions.reduce((sum, option) => sum + option.priceDelta, 0);
 
   function buyNow() {
-    if (isAdmin) return;
+    if (sessionLoading || isAdmin) return;
     addItem(product, 1, selectedOptions);
     router.push("/checkout");
   }
@@ -60,8 +61,8 @@ export function ProductPurchaseControls({ product }: { product: Product }) {
       ) : null}
       <div className="flex flex-wrap gap-3">
         <AddToCartButton product={product} selectedOptions={selectedOptions} className="min-w-40 sm:min-w-44" />
-        <button type="button" onClick={buyNow} disabled={isAdmin || product.stock <= 0} className="inline-flex h-10 min-w-36 items-center justify-center rounded-md bg-accent px-4 text-sm font-extrabold text-accent-foreground transition hover:bg-accent/90 disabled:bg-muted disabled:text-muted-foreground">
-          {isAdmin ? "Admin only" : "Buy now"}
+        <button type="button" onClick={buyNow} disabled={sessionLoading || isAdmin || product.stock <= 0} className="inline-flex h-10 min-w-36 items-center justify-center rounded-md bg-accent px-4 text-sm font-extrabold text-accent-foreground transition hover:bg-accent/90 disabled:bg-muted disabled:text-muted-foreground">
+          {sessionLoading ? "Loading" : isAdmin ? "Admin only" : "Buy now"}
         </button>
       </div>
     </div>

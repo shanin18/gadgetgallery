@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import type { FormEvent } from "react";
 import { useState, useTransition } from "react";
@@ -10,7 +10,6 @@ import { PasswordInput } from "@/components/auth/PasswordInput";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -37,8 +36,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push(safeCallbackUrl);
-      router.refresh();
+      window.location.replace(safeCallbackUrl);
     });
   }
 
