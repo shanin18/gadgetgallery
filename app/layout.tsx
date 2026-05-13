@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { CartDrawer } from "@/components/layout/CartDrawer";
 import { SessionProvider } from "next-auth/react";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { WishlistProvider } from "@/components/shop/WishlistProvider";
 import { RouteLoadingIndicator } from "@/components/layout/RouteLoadingIndicator";
 
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </div>
           </WishlistProvider>
         </SessionProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );
