@@ -27,10 +27,11 @@ export function ShopMobileFilters({ categories, initialValues }: { categories: C
       if (event.key === "Escape") setOpen(false);
     }
 
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
@@ -63,7 +64,7 @@ export function ShopMobileFilters({ categories, initialValues }: { categories: C
                 <X size={18} />
               </button>
             </div>
-            <form className="max-h-[calc(86vh-73px)] space-y-5 overflow-y-auto px-4 py-5 pb-24">
+            <form className="max-h-[calc(86vh-73px)] space-y-5 overflow-y-auto px-4 py-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
               <label className="block text-sm font-semibold">
                 Search
                 <input name="q" defaultValue={initialValues.q} className="mt-2 h-11 w-full rounded-md border bg-background px-3 outline-none focus:border-primary" />
@@ -95,7 +96,7 @@ export function ShopMobileFilters({ categories, initialValues }: { categories: C
                   <option value="newest">Newest</option>
                 </select>
               </label>
-              <div className="fixed inset-x-0 bottom-0 z-10 border-t bg-card p-4">
+              <div className="fixed inset-x-0 bottom-0 z-10 border-t bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
                 <button className="h-11 w-full rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground">Apply filters</button>
               </div>
             </form>

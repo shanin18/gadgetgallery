@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AdminNav } from "@/app/admin/AdminNav";
+import { AdminTabletDrawer } from "@/app/admin/AdminTabletDrawer";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
         <AdminNav />
       </aside>
-      <section className="min-w-0 max-w-full">{children}</section>
+      <section className="min-w-0 max-w-full">
+        <AdminTabletDrawer />
+        {children}
+      </section>
     </div>
   );
 }

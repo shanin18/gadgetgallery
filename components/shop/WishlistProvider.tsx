@@ -19,6 +19,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    let abortController: AbortController | null = null;
+    let idleId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     async function loadWishlist() {
       if (status === "loading") return;
@@ -28,7 +31,8 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const res = await fetch("/api/wishlist", { cache: "no-store" });
+      abortController = new AbortController();
+      const res = await fetch("/api/wishlist", { cache: "no-store", signal: abortController.signal });
       if (!active || !res.ok) return;
 
       const data = await res.json();
@@ -36,9 +40,25 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       setSlugs(new Set(products.map((product: { slug?: string }) => product.slug).filter(Boolean)));
     }
 
-    loadWishlist();
+    if (status === "authenticated") {
+      if ("requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(() => {
+          loadWishlist().catch(() => undefined);
+        }, { timeout: 1800 });
+      } else {
+        timeoutId = globalThis.setTimeout(() => {
+          loadWishlist().catch(() => undefined);
+        }, 450);
+      }
+    } else {
+      loadWishlist().catch(() => undefined);
+    }
+
     return () => {
       active = false;
+      abortController?.abort();
+      if (idleId !== null && "cancelIdleCallback" in window) window.cancelIdleCallback(idleId);
+      if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
     };
   }, [status]);
 

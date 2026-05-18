@@ -147,6 +147,12 @@ model Product {
   wishlists    Wishlist[]     @relation("WishlistProducts")
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+
+  @@index([categoryId])
+  @@index([brand])
+  @@index([createdAt])
+  @@index([price])
+  @@index([rating, reviewCount])
 }
 
 model ProductImage {
@@ -170,6 +176,7 @@ model Review {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+  @@index([productId, createdAt])
 }
 
 model Cart {
@@ -221,6 +228,10 @@ model Order {
   user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([confirmationStatus, createdAt])
 }
 
 model OrderItem {
@@ -254,4 +265,6 @@ model Notification {
   type      String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
 }

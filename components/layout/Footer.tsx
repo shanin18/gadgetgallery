@@ -32,8 +32,8 @@ export function Footer() {
             <h3 className="font-display text-sm font-extrabold uppercase text-foreground">Shop</h3>
             <div className="mt-4 grid gap-2.5 text-sm font-medium text-muted-foreground">
               <Link href="/shop" className="hover:text-primary">All products</Link>
-              <Link href="/shop?category=earphones" className="hover:text-primary">Earphones</Link>
-              <Link href="/shop?category=accessories" className="hover:text-primary">Accessories</Link>
+              <Link href="/category/earphones" className="hover:text-primary">Earphones</Link>
+              <Link href="/category/accessories" className="hover:text-primary">Accessories</Link>
             </div>
           </div>
 

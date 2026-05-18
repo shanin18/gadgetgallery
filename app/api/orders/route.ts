@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { createNotification, orderPlacedMessage } from "@/lib/notifications";
 import { sendAdminOrderEmail } from "@/lib/order-email";
+import { rateLimit } from "@/lib/rate-limit";
 import { orderNumber } from "@/lib/utils";
 import { checkoutSchema } from "@/lib/validations/order";
 
@@ -32,6 +34,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "orders", limit: 8, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Please log in before placing an order." }, { status: 401 });
@@ -43,6 +48,9 @@ export async function POST(request: Request) {
 
   const parsed = checkoutSchema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  if (parsed.data.paymentMethod !== "COD") {
+    return NextResponse.json({ error: "Only cash on delivery is available right now." }, { status: 400 });
+  }
 
   const productIds = parsed.data.items.map((item) => item.productId);
   const productSlugs = parsed.data.items.map((item) => item.productSlug).filter((slug): slug is string => Boolean(slug));
@@ -182,6 +190,11 @@ export async function POST(request: Request) {
   if (couponCode) {
     await db.coupon.update({ where: { code: couponCode }, data: { usedCount: { increment: 1 } } });
   }
+  await createNotification({
+    userId: session.user.id,
+    type: "ORDER_PLACED",
+    message: orderPlacedMessage(order.orderNumber)
+  });
   const adminEmail = await sendAdminOrderEmail({
     orderNumber: order.orderNumber,
     paymentMethod: order.paymentMethod,

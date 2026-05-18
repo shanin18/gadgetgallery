@@ -35,10 +35,13 @@ export function RouteLoadingIndicator() {
   }, [startTransition]);
 
   useEffect(() => {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+
     if (!targetUrl) return;
     if (targetUrl === currentUrl) {
-      setTargetUrl(null);
-      return;
+      const animationFrame = window.requestAnimationFrame(() => setTargetUrl(null));
+      return () => window.cancelAnimationFrame(animationFrame);
     }
 
     const timeout = window.setTimeout(() => setTargetUrl(null), 8000);

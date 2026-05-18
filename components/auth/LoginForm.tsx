@@ -14,8 +14,14 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const verified = searchParams.get("verified") === "true";
+  const authError = searchParams.get("error");
   const callbackUrl = searchParams.get("callbackUrl");
   const safeCallbackUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
+  const authErrorMessage = authError
+    ? authError === "OAuthAccountNotLinked"
+      ? "An account already exists with this email. Please log in with your original method first."
+      : "Google login could not be completed. Please check the setup and try again."
+    : "";
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,6 +51,7 @@ export function LoginForm() {
       <h1 className="font-display text-3xl font-extrabold">Login</h1>
       <p className="mt-2 text-sm text-muted-foreground">Access your orders, wishlist and account settings.</p>
       {verified ? <p className="mt-4 rounded-md bg-primary/10 p-3 text-sm font-semibold text-primary">Email verified. You can log in now.</p> : null}
+      {authErrorMessage ? <p className="mt-4 rounded-md bg-destructive/10 p-3 text-sm font-semibold text-destructive">{authErrorMessage}</p> : null}
       {error ? <p className="mt-4 rounded-md bg-destructive/10 p-3 text-sm font-semibold text-destructive">{error}</p> : null}
       <label className="mt-6 block text-sm font-semibold">
         Email

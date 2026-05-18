@@ -21,7 +21,7 @@ export function LoadingOverlay() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-background/70 backdrop-blur-md">
+    <div className="pointer-events-none fixed inset-0 z-[70] grid place-items-center bg-background/70 backdrop-blur-md">
       <div className="g-loader" aria-label="Loading GadgetGallery" role="status">
         <span className="sr-only">Loading</span>
         <svg className="g-loader-svg" viewBox="0 0 112 112" fill="none" aria-hidden="true">

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { rateLimit } from "@/lib/rate-limit";
 import { verifyEmailOtp } from "@/lib/email-verification";
 
 const verifySchema = z.object({
@@ -8,6 +9,9 @@ const verifySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "verify-email", limit: 8, windowMs: 60_000 });
+  if (limited) return limited;
+
   const parsed = verifySchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid verification code." }, { status: 400 });

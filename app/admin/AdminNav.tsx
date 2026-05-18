@@ -17,7 +17,7 @@ const links = [
   { href: "/admin/inventory", label: "Inventory", icon: Boxes }
 ];
 
-export function AdminNav({ variant = "sidebar" }: { variant?: "sidebar" | "mobile" }) {
+export function AdminNav({ variant = "sidebar" }: { variant?: "sidebar" | "mobile" | "drawer" }) {
   const pathname = usePathname();
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
@@ -53,6 +53,41 @@ export function AdminNav({ variant = "sidebar" }: { variant?: "sidebar" | "mobil
                 {pending ? <Loader2 size={17} className="animate-spin" /> : <Icon size={17} />}
               </span>
               <span className="leading-tight">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  }
+
+  if (variant === "drawer") {
+    return (
+      <nav className="grid gap-2">
+        {links.map((item) => {
+          const Icon = item.icon;
+          const active = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href);
+          const pending = pendingHref === item.href && !active;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              prefetch
+              onMouseEnter={() => router.prefetch(item.href)}
+              onFocus={() => router.prefetch(item.href)}
+              onClick={(event) => {
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                if (active) return;
+                startTransition(() => setPendingHref(item.href));
+              }}
+              className={cn(
+                "inline-flex h-11 items-center gap-3 rounded-md px-3 text-sm font-extrabold transition",
+                active ? "bg-primary !text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+              aria-current={active ? "page" : undefined}
+            >
+              {pending ? <Loader2 size={17} className="animate-spin" /> : <Icon size={17} />}
+              {item.label}
             </Link>
           );
         })}

@@ -6,6 +6,7 @@ import { HomeProductCard } from "@/components/shop/HomeProductCard";
 import { PromoCarousel } from "@/components/shop/PromoCarousel";
 import { ProductCarousel } from "@/components/shop/ProductCarousel";
 import { db } from "@/lib/db";
+import { withDbRetry } from "@/lib/db-retry";
 import { mapDbProduct } from "@/lib/product-mapper";
 import { formatBDT } from "@/lib/utils";
 
@@ -13,6 +14,8 @@ const productInclude = {
   category: { select: { name: true, slug: true } },
   images: { orderBy: [{ isPrimary: "desc" as const }, { id: "asc" as const }] }
 };
+
+export const revalidate = 60;
 
 function SectionHeader({ eyebrow, title, mobileTitle, detail, href, showMobileLink = false }: { eyebrow: string; title: string; mobileTitle?: string; detail?: string; href?: string; showMobileLink?: boolean }) {
   return (
@@ -37,24 +40,24 @@ function SectionHeader({ eyebrow, title, mobileTitle, detail, href, showMobileLi
 }
 
 export default async function HomePage() {
-  const [products, carouselProducts, dealProducts, categories] = await Promise.all([
-    db.product.findMany({
+  const [products, carouselProducts, dealProducts, categories] = await withDbRetry(async () => {
+    const products = await db.product.findMany({
       take: 8,
       orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
       include: productInclude
-    }),
-    db.product.findMany({
+    });
+    const carouselProducts = await db.product.findMany({
       take: 12,
       orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
       include: productInclude
-    }),
-    db.product.findMany({
+    });
+    const dealProducts = await db.product.findMany({
       where: { comparePrice: { not: null } },
       take: 3,
       orderBy: { createdAt: "desc" },
       include: productInclude
-    }),
-    db.category.findMany({
+    });
+    const categories = await db.category.findMany({
       where: { products: { some: {} } },
       take: 6,
       orderBy: { name: "asc" },
@@ -65,8 +68,10 @@ export default async function HomePage() {
           include: productInclude
         }
       }
-    })
-  ]);
+    });
+
+    return [products, carouselProducts, dealProducts, categories] as const;
+  });
 
   const featuredProducts = products.map(mapDbProduct);
   const topProducts = carouselProducts.map(mapDbProduct);
@@ -76,17 +81,17 @@ export default async function HomePage() {
   if (!heroProduct) {
     return (
       <div className="container-page py-16">
-        <div className="rounded-lg border bg-card p-8">
+        <div className="mx-auto max-w-2xl px-4 text-center">
           <p className="text-sm font-extrabold uppercase text-primary">GadgetGallery</p>
-          <h1 className="mt-2 font-display text-4xl font-extrabold">Products are coming soon</h1>
-          <p className="mt-3 text-muted-foreground">Add products from the admin dashboard to populate the homepage.</p>
+          <h1 className="mt-2 font-display text-4xl font-extrabold">Catalog is being updated</h1>
+          <p className="mt-3 text-muted-foreground">Please check back shortly for the latest gadgets and accessories.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="animate-fade-in bg-[#eef6ff] md:bg-transparent">
+    <div className="bg-[#eef6ff] md:bg-transparent">
       <section className="hidden border-b bg-card md:block">
         <div className="container-page grid min-h-[560px] items-center gap-10 py-10 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="max-w-xl">
@@ -154,10 +159,10 @@ export default async function HomePage() {
         <div className="grid grid-cols-3 gap-3 sm:gap-4 lg:grid-cols-6">
           {categories.map((category) => {
             const firstProduct = category.products[0] ? mapDbProduct(category.products[0]) : null;
-            const image = category.image ?? firstProduct?.image ?? "/placeholder.svg";
+            const image = category.image ?? firstProduct?.image ?? "/brand/gadget-gallery-logo.png";
 
             return (
-              <Link key={category.slug} href={`/shop?category=${category.slug}`} className="group overflow-hidden rounded-xl active:scale-[0.99]">
+              <Link key={category.slug} href={`/category/${category.slug}`} className="group overflow-hidden rounded-xl active:scale-[0.99]">
                 <div className="relative aspect-square overflow-hidden rounded-xl bg-white ring-1 ring-black/5">
                   <Image src={image} alt={category.name} fill sizes="(min-width: 1024px) 16vw, 33vw" className="object-cover transition group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />

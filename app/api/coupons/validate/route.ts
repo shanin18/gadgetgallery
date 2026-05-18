@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 function calculateDiscount(type: string, discount: number, subtotal: number) {
   const value = type === "PERCENTAGE" ? Math.round((subtotal * discount) / 100) : discount;
@@ -7,6 +8,9 @@ function calculateDiscount(type: string, discount: number, subtotal: number) {
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "coupon-validate", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const body = await request.json().catch(() => ({}));
   const code = String(body.code ?? "").trim().toUpperCase();
   const subtotal = Number(body.subtotal ?? 0);

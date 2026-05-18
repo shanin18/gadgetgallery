@@ -66,7 +66,7 @@ function toSpecs(value: Prisma.JsonValue | null): Record<string, string> {
 
 export function mapDbProduct(product: ProductWithCatalogFields): Product {
   const imageUrls = product.images.map((image) => image.url).filter(Boolean);
-  const primaryImage = imageUrls[0] ?? "/placeholder.svg";
+  const primaryImage = imageUrls[0] ?? "/brand/gadget-gallery-logo.png";
 
   return {
     id: product.id,

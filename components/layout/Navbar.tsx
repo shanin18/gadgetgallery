@@ -45,7 +45,7 @@ export function Navbar() {
   const isAdmin = user?.role === "ADMIN" || pathname.startsWith("/admin");
   const isActiveHref = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
-  function startNavigation(href: string) {
+  function startNavigation() {
     setAccountOpen(false);
   }
 
@@ -64,7 +64,7 @@ export function Navbar() {
     <>
       <header className="fixed inset-x-0 top-0 z-50 hidden border-b bg-background/86 backdrop-blur-xl md:block">
         <div className="container-page relative flex h-16 items-center gap-4">
-          <Link href="/" onClick={() => startNavigation("/")} className="font-display text-xl font-extrabold">
+          <Link href="/" onClick={startNavigation} className="font-display text-xl font-extrabold">
             Gadget<span className="text-primary">Gallery</span>
           </Link>
           <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex lg:static lg:translate-x-0">
@@ -72,7 +72,7 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => startNavigation(item.href)}
+                onClick={startNavigation}
                 className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
                   isActiveHref(item.href) ? "!text-primary font-extrabold" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
@@ -84,7 +84,7 @@ export function Navbar() {
             {user && !isAdmin ? (
               <Link
                 href="/account/orders"
-                onClick={() => startNavigation("/account/orders")}
+                onClick={startNavigation}
                 className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
                   isActiveHref("/account/orders") ? "!text-primary font-extrabold" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
@@ -96,7 +96,7 @@ export function Navbar() {
             {isAdmin ? (
               <Link
                 href="/admin"
-                onClick={() => startNavigation("/admin")}
+                onClick={startNavigation}
                 className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
                   pathname.startsWith("/admin") ? "!text-primary font-extrabold" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
@@ -126,7 +126,7 @@ export function Navbar() {
                 {accountOpen ? <AccountMenu user={user} onNavigate={startNavigation} /> : null}
               </>
           ) : (
-            <Link href="/login" onClick={() => startNavigation("/login")} className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-semibold text-white hover:brightness-95">
+            <Link href="/login" onClick={startNavigation} className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-semibold !text-primary-foreground hover:brightness-95">
               Login
             </Link>
           )}
@@ -180,7 +180,7 @@ function MobileHeader({ user, isAdmin, sessionLoaded }: { user?: AuthUser; isAdm
               <UserAvatar user={user} size="md" />
             </button>
           ) : (
-            <Link href="/login" className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-primary px-4 text-sm font-extrabold text-primary-foreground shadow-sm" aria-label="Login">
+            <Link href="/login" className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-primary px-4 text-sm font-semibold !text-primary-foreground shadow-sm" aria-label="Login">
               Login
             </Link>
           )}
@@ -273,9 +273,16 @@ function MobileBottomNav({ count, onCartOpen, isAdmin }: { count: number; onCart
   }, [adminMenuOpen]);
 
   useEffect(() => {
-    closeAdminMenu();
-    setPendingHref(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const animationFrame = window.requestAnimationFrame(() => {
+      setAdminMenuOpen(false);
+      setPendingHref(null);
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+      closeTimerRef.current = window.setTimeout(() => setAdminMenuMounted(false), 220);
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
   }, [pathname]);
 
   useEffect(() => {
@@ -305,7 +312,7 @@ function MobileBottomNav({ count, onCartOpen, isAdmin }: { count: number; onCart
 
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-card/96 shadow-[0_-10px_35px_rgba(15,23,42,0.12)] backdrop-blur-xl md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-card/96 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_35px_rgba(15,23,42,0.12)] backdrop-blur-xl md:hidden">
         <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-center px-4">
           {links.slice(0, 2).map((item) => {
             const active = isMobileActive(item.href);
@@ -411,7 +418,7 @@ function MobileBottomNav({ count, onCartOpen, isAdmin }: { count: number; onCart
   );
 }
 
-function AccountMenu({ user, onNavigate }: { user: AuthUser; onNavigate: (href: string) => void }) {
+function AccountMenu({ user, onNavigate }: { user: AuthUser; onNavigate: () => void }) {
   const isAdmin = user.role === "ADMIN";
 
   return (
@@ -461,9 +468,9 @@ function UserAvatar({ user, size }: { user: AuthUser; size: "sm" | "md" }) {
   );
 }
 
-function AccountLink({ href, icon: Icon, label, onNavigate }: { href: string; icon: typeof Settings; label: string; onNavigate: (href: string) => void }) {
+function AccountLink({ href, icon: Icon, label, onNavigate }: { href: string; icon: typeof Settings; label: string; onNavigate: () => void }) {
   return (
-    <Link href={href} onClick={() => onNavigate(href)} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted">
+    <Link href={href} onClick={onNavigate} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted">
       <Icon size={17} />
       {label}
     </Link>

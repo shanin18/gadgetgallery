@@ -1,45 +1,13 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingCart, Star } from "lucide-react";
-import { useTransition } from "react";
-import { useSession } from "next-auth/react";
+import { Star } from "lucide-react";
 import type { Product } from "@/lib/catalog";
 import { cn, formatBDT } from "@/lib/utils";
-import { useWishlist } from "@/components/shop/WishlistProvider";
-import { useCartStore } from "@/store/cart-store";
+import { HomeProductActions } from "@/components/shop/HomeProductActions";
 
 export function HomeProductCard({ product }: { product: Product }) {
-  const addItem = useCartStore((state) => state.addItem);
-  const { data: session, status } = useSession();
-  const { slugs, setWishlisted } = useWishlist();
-  const [isPending, startTransition] = useTransition();
-  const wishlisted = slugs.has(product.slug);
-  const sessionLoading = status === "loading";
-  const isAdmin = session?.user?.role === "ADMIN";
   const discount = product.comparePrice ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100) : 0;
   const inStock = product.stock > 0;
-
-  function toggleWishlist() {
-    startTransition(async () => {
-      const nextWishlisted = !wishlisted;
-      const res = await fetch("/api/wishlist", {
-        method: nextWishlisted ? "POST" : "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productSlug: product.slug })
-      });
-
-      if (res.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
-
-      if (res.ok) {
-        setWishlisted(product.slug, nextWishlisted);
-      }
-    });
-  }
 
   return (
     <article className="group overflow-hidden rounded-lg border bg-card shadow-sm transition active:scale-[0.99] hover:-translate-y-0.5 hover:shadow-soft">
@@ -57,16 +25,7 @@ export function HomeProductCard({ product }: { product: Product }) {
         <span className={cn("absolute right-2 top-2 hidden rounded px-2 py-1 text-[10px] font-extrabold shadow-sm sm:inline-flex", inStock ? "bg-card/95 text-primary" : "bg-destructive text-destructive-foreground")}>
           {inStock ? "In stock" : "Out of stock"}
         </span>
-        <button
-          type="button"
-          aria-label={wishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-          aria-pressed={wishlisted}
-          disabled={isPending}
-          onClick={toggleWishlist}
-          className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full border border-white/70 bg-card/95 shadow-sm transition hover:bg-background disabled:opacity-60 sm:bottom-2 sm:top-auto"
-        >
-          <Heart size={15} className={wishlisted ? "fill-destructive text-destructive" : ""} />
-        </button>
+        <HomeProductActions product={product} placement="badge" />
       </div>
 
       <div className="p-2.5 sm:p-4">
@@ -84,15 +43,7 @@ export function HomeProductCard({ product }: { product: Product }) {
           {product.comparePrice ? <p className="text-[11px] text-muted-foreground line-through sm:text-sm">{formatBDT(product.comparePrice)}</p> : null}
         </div>
         <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            disabled={!inStock || sessionLoading || isAdmin}
-            onClick={() => addItem(product)}
-            className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-2 text-xs font-semibold text-primary-foreground transition hover:brightness-95 disabled:bg-muted disabled:text-muted-foreground sm:h-9 sm:text-sm"
-          >
-            <ShoppingCart size={15} />
-            <span className="sm:inline">{sessionLoading ? "..." : isAdmin ? "Admin" : "Add"}</span>
-          </button>
+          <HomeProductActions product={product} placement="cart" />
           <Link href={`/product/${product.slug}`} className="hidden h-9 items-center justify-center rounded-md border px-3 text-sm font-semibold transition hover:bg-muted sm:inline-flex">
             View
           </Link>

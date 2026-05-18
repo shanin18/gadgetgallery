@@ -23,9 +23,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: mappedProduct.name,
     description: mappedProduct.description,
+    alternates: { canonical: `/product/${mappedProduct.slug}` },
     openGraph: {
       title: mappedProduct.name,
       description: mappedProduct.description,
+      url: `/product/${mappedProduct.slug}`,
+      type: "website",
       images: [mappedProduct.image]
     }
   };
@@ -97,16 +100,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <WishlistButton productSlug={product.slug} />
           </div>
           {Object.keys(product.specs).length ? (
-            <div className="mt-7 sm:mt-8 sm:rounded-lg sm:border sm:bg-card sm:p-5">
-              <h2 className="font-display text-lg font-bold sm:text-xl">Specifications</h2>
-              <dl className="mt-3 divide-y sm:mt-4 sm:grid sm:gap-3 sm:divide-y-0 sm:grid-cols-2">
+            <div className="mt-7 sm:mt-8">
+              <h2 className="font-display text-lg font-bold sm:text-xl">Highlights</h2>
+              <ul className="mt-3 list-disc space-y-2.5 pl-5 text-sm leading-6 text-muted-foreground marker:text-muted-foreground sm:mt-4 sm:space-y-3 sm:text-base">
                 {Object.entries(product.specs).map(([key, value]) => (
-                  <div key={key} className="grid grid-cols-[0.8fr_1fr] gap-3 py-2.5 sm:block sm:rounded-md sm:bg-muted sm:p-3">
-                    <dt className="text-[11px] font-bold uppercase text-muted-foreground sm:text-xs">{key}</dt>
-                    <dd className="text-right text-sm font-semibold leading-5 sm:mt-1 sm:text-left sm:text-base">{value}</dd>
-                  </div>
+                  <li key={key}>
+                    {/^highlight\s+\d+$/i.test(key) ? value : <><span>{key}:</span> {value}</>}
+                  </li>
                 ))}
-              </dl>
+              </ul>
             </div>
           ) : null}
         </section>

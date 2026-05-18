@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 const reviewSchema = z.object({
   productId: z.string().min(1),
@@ -73,6 +74,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "reviews", limit: 10, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -125,6 +129,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const limited = rateLimit(request, { name: "review-delete", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (!session?.user?.id) {

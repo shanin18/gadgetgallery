@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createEmailOtp, sendEmailOtp } from "@/lib/email-verification";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -12,6 +13,9 @@ const registerSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "register", limit: 5, windowMs: 60_000 });
+  if (limited) return limited;
+
   const parsed = registerSchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid registration details." }, { status: 400 });

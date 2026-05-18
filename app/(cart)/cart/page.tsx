@@ -47,7 +47,7 @@ export default function CartPage() {
         <h2 className="font-display text-xl font-bold">Order summary</h2>
         <label className="mt-5 block text-sm font-semibold">
           Promo code
-          <input className="mt-2 h-10 w-full rounded-md border bg-background px-3 outline-none focus:border-primary" placeholder="WELCOME10" />
+          <input className="mt-2 h-10 w-full rounded-md border bg-background px-3 outline-none focus:border-primary" placeholder="Enter coupon code" />
         </label>
         <div className="mt-5 space-y-3 text-sm">
           <div className="flex justify-between"><span>Subtotal</span><span>{formatBDT(totals.subtotal)}</span></div>

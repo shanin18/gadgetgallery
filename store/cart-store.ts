@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { Product, SelectedProductOption } from "@/lib/catalog";
 
 export type CartLine = {
@@ -21,33 +22,48 @@ type CartState = {
   toggle: (open?: boolean) => void;
 };
 
-export const useCartStore = create<CartState>((set) => ({
-  items: [],
-  open: false,
-  addItem: (product, quantity = 1, selectedOptions = []) =>
-    set((state) => {
-      const optionKey = selectedOptions.map((option) => `${option.name}:${option.value}:${option.priceDelta}`).sort().join("|");
-      const lineId = `${product.id}::${optionKey}`;
-      const unitPrice = product.price + selectedOptions.reduce((sum, option) => sum + option.priceDelta, 0);
-      const existing = state.items.find((item) => item.id === lineId);
-      if (existing) {
-        return {
-          items: state.items.map((item) =>
-            item.id === lineId ? { ...item, quantity: Math.min(item.quantity + quantity, product.stock) } : item
-          ),
-          open: true
-        };
-      }
-      return { items: [...state.items, { id: lineId, product, quantity, selectedOptions, unitPrice }], open: true };
+const serverStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {}
+};
+
+export const useCartStore = create<CartState>()(
+  persist(
+    (set) => ({
+      items: [],
+      open: false,
+      addItem: (product, quantity = 1, selectedOptions = []) =>
+        set((state) => {
+          const optionKey = selectedOptions.map((option) => `${option.name}:${option.value}:${option.priceDelta}`).sort().join("|");
+          const lineId = `${product.id}::${optionKey}`;
+          const unitPrice = product.price + selectedOptions.reduce((sum, option) => sum + option.priceDelta, 0);
+          const existing = state.items.find((item) => item.id === lineId);
+          if (existing) {
+            return {
+              items: state.items.map((item) =>
+                item.id === lineId ? { ...item, quantity: Math.min(item.quantity + quantity, product.stock) } : item
+              ),
+              open: true
+            };
+          }
+          return { items: [...state.items, { id: lineId, product, quantity, selectedOptions, unitPrice }], open: true };
+        }),
+      removeItem: (lineId) => set((state) => ({ items: state.items.filter((item) => item.id !== lineId) })),
+      setQuantity: (lineId, quantity) =>
+        set((state) => ({
+          items: state.items.map((item) => (item.id === lineId ? { ...item, quantity: Math.max(1, Math.min(quantity, item.product.stock)) } : item))
+        })),
+      clear: () => set({ items: [] }),
+      toggle: (open) => set((state) => ({ open: open ?? !state.open }))
     }),
-  removeItem: (lineId) => set((state) => ({ items: state.items.filter((item) => item.id !== lineId) })),
-  setQuantity: (lineId, quantity) =>
-    set((state) => ({
-      items: state.items.map((item) => (item.id === lineId ? { ...item, quantity: Math.max(1, Math.min(quantity, item.product.stock)) } : item))
-    })),
-  clear: () => set({ items: [] }),
-  toggle: (open) => set((state) => ({ open: open ?? !state.open }))
-}));
+    {
+      name: "gadgetgallery-cart",
+      storage: createJSONStorage(() => (typeof window === "undefined" ? serverStorage : window.localStorage)),
+      partialize: (state) => ({ items: state.items })
+    }
+  )
+);
 
 export function cartTotals(items: CartLine[]) {
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);

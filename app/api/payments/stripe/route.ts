@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe";
 export async function POST(request: Request) {
   const { amount } = await request.json();
   if (!stripe) {
-    return NextResponse.json({ provider: "stripe", mode: "stub", clientSecret: "stripe_test_stub" });
+    return NextResponse.json({ error: "Card payment is not available right now." }, { status: 503 });
   }
   const intent = await stripe.paymentIntents.create({
     amount: Math.round(Number(amount) * 100),

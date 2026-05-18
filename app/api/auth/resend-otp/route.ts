@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createEmailOtp, sendEmailOtp } from "@/lib/email-verification";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 const resendSchema = z.object({
   email: z.string().email()
 });
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "resend-otp", limit: 4, windowMs: 60_000 });
+  if (limited) return limited;
+
   const parsed = resendSchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Enter a valid email." }, { status: 400 });

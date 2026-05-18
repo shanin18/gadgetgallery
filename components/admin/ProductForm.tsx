@@ -68,6 +68,7 @@ export function ProductForm({ title, categories, product }: { title: string; cat
   const [form, setForm] = useState(product ?? emptyProduct);
   const [slugTouched, setSlugTouched] = useState(Boolean(product?.slug));
   const [dealEnabled, setDealEnabled] = useState(true);
+  const [bulkHighlights, setBulkHighlights] = useState(() => (product ?? emptyProduct).specs.map((spec) => spec.key.toLowerCase().startsWith("highlight ") ? spec.value : `${spec.key}: ${spec.value}`).join("\n"));
   const [message, setMessage] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -81,19 +82,24 @@ export function ProductForm({ title, categories, product }: { title: string; cat
     setForm((current) => ({ ...current, featured: value }));
   }
 
-  function addSpec() {
-    setForm((current) => ({ ...current, specs: [...current.specs, { key: "", value: "" }] }));
-  }
+  function parseHighlights(value: string) {
+    return value
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^[\s•*-]+/, "").trim())
+      .filter(Boolean)
+      .map((line, index) => {
+        const match = line.match(/^([^:：–—-]+)\s*[:：–—-]\s*(.+)$/);
 
-  function updateSpec(index: number, field: "key" | "value", value: string) {
-    setForm((current) => ({
-      ...current,
-      specs: current.specs.map((spec, specIndex) => (specIndex === index ? { ...spec, [field]: value } : spec))
-    }));
-  }
+        if (!match) {
+          return { key: `Highlight ${index + 1}`, value: line };
+        }
 
-  function removeSpec(index: number) {
-    setForm((current) => ({ ...current, specs: current.specs.filter((_, specIndex) => specIndex !== index) }));
+        return {
+          key: match[1].trim(),
+          value: match[2].trim()
+        };
+      })
+      .filter((spec) => spec.key && spec.value);
   }
 
   function addOptionGroup() {
@@ -199,7 +205,7 @@ export function ProductForm({ title, categories, product }: { title: string; cat
         comparePrice: dealEnabled && form.comparePrice ? form.comparePrice : null,
         stock: form.stock,
         featured: form.featured,
-        specs: Object.fromEntries(form.specs.filter((spec) => spec.key.trim() && spec.value.trim()).map((spec) => [spec.key.trim(), spec.value.trim()])),
+        specs: Object.fromEntries(parseHighlights(bulkHighlights).map((spec) => [spec.key, spec.value])),
         options: form.options
           .map((group) => ({
             name: group.name.trim(),
@@ -369,27 +375,22 @@ export function ProductForm({ title, categories, product }: { title: string; cat
         <div className="rounded-xl bg-card p-3 sm:col-span-2 sm:p-4 md:bg-background">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-extrabold">Specifications</p>
-              <p className="mt-1 text-xs font-semibold text-muted-foreground">Add details like material, fit, warranty, battery, or size.</p>
+              <p className="text-sm font-extrabold">Highlights</p>
+              <p className="mt-1 text-xs font-semibold text-muted-foreground">Write one highlight per line. Use “Name: detail” when you want a label.</p>
             </div>
-            <button type="button" onClick={addSpec} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold hover:bg-muted sm:w-auto">
-              <Plus size={16} />
-              Add spec
-            </button>
           </div>
-          <div className="mt-4 grid gap-3">
-            {form.specs.map((spec, index) => (
-              <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                <input value={spec.key} onChange={(event) => updateSpec(index, "key", event.target.value)} placeholder="Name" className="h-10 rounded-md border bg-card px-3 text-sm font-semibold outline-none focus:border-primary" />
-                <input value={spec.value} onChange={(event) => updateSpec(index, "value", event.target.value)} placeholder="Value" className="h-10 rounded-md border bg-card px-3 text-sm font-semibold outline-none focus:border-primary" />
-                <button type="button" onClick={() => removeSpec(index)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold text-destructive hover:bg-destructive/10">
-                  <X size={16} />
-                  Remove
-                </button>
-              </div>
-            ))}
-            {!form.specs.length ? <p className="rounded-md bg-muted p-3 text-sm font-semibold text-muted-foreground">No specifications added.</p> : null}
-          </div>
+          <textarea
+            value={bulkHighlights}
+            onChange={(event) => setBulkHighlights(event.target.value)}
+            className="mt-4 min-h-52 w-full rounded-md border bg-card p-3 text-sm font-semibold leading-6 outline-none focus:border-primary"
+            placeholder={`Brand: MOONDROP
+Model: RAYS
+Type: USB-C DSP In-Ear Monitor with AI Mic Noise Cancellation
+Drivers: 10mm Sapphire-Plated Dynamic + 6mm Annular Planar Magnetic`}
+          />
+          <button type="button" onClick={() => setBulkHighlights("")} className="mt-2 inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-bold hover:bg-muted">
+            Clear highlights
+          </button>
         </div>
         <div className="rounded-xl bg-card p-3 sm:col-span-2 sm:p-4 md:bg-background">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

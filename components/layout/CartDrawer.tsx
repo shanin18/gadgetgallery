@@ -17,8 +17,8 @@ export function CartDrawer() {
 
   return (
     <>
-      {open ? <div className="fixed inset-0 z-40 bg-black/35" onClick={() => toggle(false)} /> : null}
-      <aside className={`fixed right-0 top-0 z-50 h-full w-full max-w-md border-l bg-background shadow-soft transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
+      {open ? <div className="fixed inset-0 z-[70] bg-black/35" onClick={() => toggle(false)} /> : null}
+      <aside className={`fixed right-0 top-0 z-[80] h-full w-full max-w-md border-l bg-background shadow-soft transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
         <div className="flex h-16 items-center justify-between border-b px-5">
           <h2 className="font-display text-lg font-bold">Cart</h2>
           <button className="rounded-md p-2 hover:bg-muted" onClick={() => toggle(false)} aria-label="Close cart"><X size={20} /></button>

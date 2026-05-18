@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 export async function POST() {
-  return NextResponse.json({
-    provider: "paypal",
-    mode: process.env.PAYPAL_CLIENT_ID ? "sandbox-ready" : "stub",
-    orderId: `PAYPAL-${Date.now()}`
-  });
+  if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+    return NextResponse.json({ error: "PayPal payment is not available right now." }, { status: 503 });
+  }
+
+  return NextResponse.json({ error: "PayPal checkout is not enabled yet." }, { status: 501 });
 }

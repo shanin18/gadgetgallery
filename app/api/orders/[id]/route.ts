@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { createNotification, orderConfirmationMessage, orderDeliveryMessage } from "@/lib/notifications";
 
 const confirmationStatuses = ["PENDING", "CONFIRMED", "CANCELLED"] as const;
 const deliveryStatuses = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"] as const;
@@ -10,6 +11,9 @@ type DeliveryStatus = (typeof deliveryStatuses)[number];
 
 type OrderWorkflowRow = {
   id: string;
+  userId: string | null;
+  orderNumber: string;
+  confirmationStatus: ConfirmationStatus;
   confirmedAt: Date | null;
   stockCommitted: boolean;
   status: DeliveryStatus;
@@ -49,7 +53,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   try {
     const [currentOrder] = await db.$queryRaw<OrderWorkflowRow[]>`
-      SELECT "id", "confirmedAt", "stockCommitted", "status", "couponCode"
+      SELECT "id", "userId", "orderNumber", "confirmationStatus", "confirmedAt", "stockCommitted", "status", "couponCode"
       FROM "Order"
       WHERE "id" = ${id}
       LIMIT 1
@@ -129,6 +133,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           "updatedAt" = NOW()
         WHERE "id" = ${id}
       `;
+
+      if (nextConfirmationStatus !== currentOrder.confirmationStatus) {
+        await createNotification({
+          userId: currentOrder.userId,
+          type: `ORDER_CONFIRMATION_${nextConfirmationStatus}`,
+          message: orderConfirmationMessage(currentOrder.orderNumber, nextConfirmationStatus)
+        });
+      }
     }
 
     if (deliveryStatus) {
@@ -137,6 +149,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         SET "status" = ${deliveryStatus as DeliveryStatus}::"OrderStatus", "updatedAt" = NOW()
         WHERE "id" = ${id}
       `;
+
+      if (deliveryStatus !== currentOrder.status) {
+        await createNotification({
+          userId: currentOrder.userId,
+          type: `ORDER_STATUS_${deliveryStatus}`,
+          message: orderDeliveryMessage(currentOrder.orderNumber, deliveryStatus)
+        });
+      }
     }
 
     return NextResponse.json({ ok: true });
@@ -158,7 +178,7 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
 
   try {
     const [currentOrder] = await db.$queryRaw<OrderWorkflowRow[]>`
-      SELECT "id", "confirmedAt", "stockCommitted", "status", "couponCode"
+      SELECT "id", "userId", "orderNumber", "confirmationStatus", "confirmedAt", "stockCommitted", "status", "couponCode"
       FROM "Order"
       WHERE "id" = ${id}
       LIMIT 1
