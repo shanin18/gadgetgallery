@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { PRODUCT_PAGE_SIZE, productListInclude, productOrderBy, productWhere } from "@/lib/product-listing";
 import { mapDbProduct } from "@/lib/product-mapper";
 import { productSchema } from "@/lib/validations/product";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -32,6 +33,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "admin-product-create", limit: 30, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (session?.user?.role !== "ADMIN") {

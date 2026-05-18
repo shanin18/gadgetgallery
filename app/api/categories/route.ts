@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 import { slugify } from "@/lib/utils";
 
 const categorySchema = z.object({
@@ -11,6 +12,9 @@ const categorySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "admin-category-create", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (session?.user?.role !== "ADMIN") {

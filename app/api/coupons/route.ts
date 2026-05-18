@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 function generateCode() {
   return `GG-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -17,6 +18,9 @@ const couponSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, { name: "admin-coupon-create", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (session?.user?.role !== "ADMIN") {

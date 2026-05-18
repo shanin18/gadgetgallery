@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 const roleSchema = z.object({
   role: z.enum(["USER", "ADMIN"])
@@ -22,6 +23,9 @@ async function isLastAdmin(userId: string) {
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limited = rateLimit(request, { name: "admin-user-update", limit: 30, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 
@@ -46,6 +50,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limited = rateLimit(_request, { name: "admin-user-delete", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 

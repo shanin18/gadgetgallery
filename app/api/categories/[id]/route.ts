@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 import { slugify } from "@/lib/utils";
 
 const categoryUpdateSchema = z.object({
@@ -11,6 +12,9 @@ const categoryUpdateSchema = z.object({
 });
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limited = rateLimit(request, { name: "admin-category-update", limit: 30, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (session?.user?.role !== "ADMIN") {
@@ -45,7 +49,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limited = rateLimit(request, { name: "admin-category-delete", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (session?.user?.role !== "ADMIN") {

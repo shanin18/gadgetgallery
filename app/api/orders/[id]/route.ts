@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createNotification, orderConfirmationMessage, orderDeliveryMessage } from "@/lib/notifications";
+import { rateLimit } from "@/lib/rate-limit";
 
 const confirmationStatuses = ["PENDING", "CONFIRMED", "CANCELLED"] as const;
 const deliveryStatuses = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"] as const;
@@ -32,6 +33,9 @@ type ProductStockRow = {
 };
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limited = rateLimit(request, { name: "admin-order-update", limit: 60, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (session?.user?.role !== "ADMIN") {
@@ -167,7 +171,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limited = rateLimit(request, { name: "admin-order-delete", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const session = await auth();
 
   if (session?.user?.role !== "ADMIN") {

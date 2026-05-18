@@ -8,7 +8,14 @@ const reviewSchema = z.object({
   productId: z.string().min(1),
   rating: z.coerce.number().int().min(1).max(5),
   comment: z.string().trim().max(1000).optional(),
-  images: z.array(z.string().trim().min(1)).max(6).default([])
+  images: z.array(z.string().url().refine((value) => {
+    try {
+      const url = new URL(value);
+      return url.protocol === "https:" && url.hostname === "res.cloudinary.com";
+    } catch {
+      return false;
+    }
+  }, "Review photos must come from uploaded images.")).max(6).default([])
 });
 
 const deleteReviewSchema = z.object({
